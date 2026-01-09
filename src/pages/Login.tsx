@@ -1,0 +1,114 @@
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
+import { Card, Button, Input, Footprints, Eye, EyeOff } from "../components/ui";
+import { useAppDispatch, useAppSelector } from "../store";
+import { login, clearError } from "../store/slices/authSlice";
+import { cn } from "../lib/utils";
+
+export default function Login() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch(login({ email, password }));
+  };
+
+  return (
+    <div className="min-h-dvh flex flex-col justify-center px-4 py-12 bg-[var(--color-background)]">
+      <div className="max-w-sm mx-auto w-full animate-fade-in">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className={cn(
+            "w-20 h-20 rounded-[var(--radius-xl)]",
+            "bg-gradient-to-br from-[var(--color-success)] to-emerald-600",
+            "flex items-center justify-center mx-auto mb-4",
+            "shadow-lg shadow-[var(--color-success)]/30"
+          )}>
+            <Footprints className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
+            Step Wars
+          </h1>
+          <p className="text-[var(--color-text-secondary)] mt-1">
+            Welcome back!
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <Card className="animate-slide-up stagger-1">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
+
+            <Input
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              }
+            />
+
+            {error && (
+              <div className="p-3 rounded-[var(--radius-md)] bg-[var(--color-danger)]/10 text-[var(--color-danger)] text-[14px]">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" fullWidth isLoading={isLoading}>
+              Sign In
+            </Button>
+          </form>
+        </Card>
+
+        {/* Sign Up Link */}
+        <p className="text-center mt-6 text-[var(--color-text-secondary)]">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-[var(--color-accent)] hover:underline"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,36 @@
+{
+  "name": "step-wars",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 execute step-wars-db --local --file=./migrations/0001_create_users.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0002_create_sessions.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0003_create_challenges.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0004_create_participants.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0005_create_step_entries.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0006_create_daily_points.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0007_create_user_goals.sql && wrangler d1 execute step-wars-db --local --file=./migrations/0008_create_user_badges.sql",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.5.0",
+    "canvas-confetti": "^1.9.3",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-redux": "^9.2.0",
+    "react-router": "^7.1.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.0.3",
+    "@cloudflare/workers-types": "^4.20241230.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/canvas-confetti": "^1.6.4",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^5.1.2",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "wrangler": "^3.99.0"
+  }
+}

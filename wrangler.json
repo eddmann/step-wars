@@ -1,0 +1,17 @@
+{
+  "name": "step-wars",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-01-08",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "step-wars-db",
+      "database_id": "local"
+    }
+  ]
+}

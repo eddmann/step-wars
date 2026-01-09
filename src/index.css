@@ -1,0 +1,317 @@
+@import "tailwindcss";
+
+/* ========================================
+   STEP WARS - Design System
+   Clean iOS-inspired theme with CSS variables
+   ======================================== */
+
+:root {
+  /* Core Colors */
+  --color-background: #f2f2f7;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f2f2f7;
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #86868b;
+  --color-text-tertiary: #aeaeb2;
+  --color-border: #e5e5e7;
+
+  /* Accent Colors */
+  --color-accent: #007aff;
+  --color-accent-light: #5ac8fa;
+  --color-success: #34c759;
+  --color-success-light: #30d158;
+  --color-warning: #ff9500;
+  --color-danger: #ff3b30;
+  --color-purple: #af52de;
+  --color-pink: #ff2d55;
+
+  /* Podium Colors */
+  --color-gold: #ffd700;
+  --color-silver: #c0c0c0;
+  --color-bronze: #cd7f32;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+/* Dark Theme */
+.dark {
+  --color-background: #000000;
+  --color-surface: #1c1c1e;
+  --color-surface-secondary: #2c2c2e;
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #98989d;
+  --color-text-tertiary: #636366;
+  --color-border: #38383a;
+
+  /* Slightly brighter accents for dark mode */
+  --color-accent: #0a84ff;
+  --color-success: #30d158;
+  --color-warning: #ff9f0a;
+  --color-danger: #ff453a;
+
+  /* Adjusted shadows for dark mode */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  min-height: 100dvh;
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+/* ========================================
+   View Transitions (Page Navigation)
+   ======================================== */
+
+@view-transition {
+  navigation: auto;
+}
+
+/* Default cross-fade transition */
+::view-transition-old(root) {
+  animation: fade-out 0.15s ease-out forwards;
+}
+
+::view-transition-new(root) {
+  animation: fade-in 0.15s ease-in forwards;
+}
+
+/* Page content transitions - slide effect */
+::view-transition-old(page-content) {
+  animation: slide-out-left 0.2s ease-out forwards;
+}
+
+::view-transition-new(page-content) {
+  animation: slide-in-right 0.2s ease-out forwards;
+}
+
+/* Back navigation - reverse direction */
+.navigating-back::view-transition-old(page-content) {
+  animation: slide-out-right 0.2s ease-out forwards;
+}
+
+.navigating-back::view-transition-new(page-content) {
+  animation: slide-in-left 0.2s ease-out forwards;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-out-left {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ========================================
+   Animations (In-page)
+   ======================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes ringFill {
+  from {
+    stroke-dashoffset: var(--ring-circumference, 0);
+  }
+  to {
+    stroke-dashoffset: var(--ring-offset, 0);
+  }
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out both;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInFromBottom 0.3s ease-out both;
+}
+
+.animate-ring-fill {
+  animation: ringFill 1s ease-out forwards;
+}
+
+.animate-toast-in {
+  animation: toastIn 0.25s ease-out both;
+}
+
+/* Stagger delays for lists */
+.stagger-1 { animation-delay: 30ms; }
+.stagger-2 { animation-delay: 60ms; }
+.stagger-3 { animation-delay: 90ms; }
+.stagger-4 { animation-delay: 120ms; }
+.stagger-5 { animation-delay: 150ms; }
+
+/* View transition name for page content */
+.page-content {
+  view-transition-name: page-content;
+}
+
+/* ========================================
+   Interactive States
+   ======================================== */
+
+.press-effect {
+  transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+}
+
+.press-effect:active {
+  transform: scale(0.97);
+  opacity: 0.8;
+  transition: none;
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-light);
+}
+
+/* ========================================
+   Utilities
+   ======================================== */
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

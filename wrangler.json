@@ -13,5 +13,8 @@
       "database_name": "step-wars-db",
       "database_id": "local"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": ["0 12 * * *"]
+  }
 }

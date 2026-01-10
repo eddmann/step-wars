@@ -5,7 +5,10 @@ import {
   updateUserGoals,
   toggleGoalsPause,
   getTodaySteps,
+  getPendingNotifications,
+  markNotificationsAsRead,
 } from "../db/queries";
+import { getDateInTimezone } from "../../shared/dateUtils";
 
 export async function handleGoals(
   request: Request,
@@ -18,15 +21,14 @@ export async function handleGoals(
     const goals = await getOrCreateUserGoals(env, user.id);
 
     // Get today's total steps across all challenges
-    const now = new Date();
-    const userNow = new Date(
-      now.toLocaleString("en-US", { timeZone: user.timezone })
-    );
-    const today = userNow.toISOString().split("T")[0];
+    const today = getDateInTimezone(user.timezone);
     const todaySteps = await getTodaySteps(env, user.id, today);
 
     // Calculate weekly steps (last 7 days)
     const weeklySteps = await getWeeklySteps(env, user.id, user.timezone);
+
+    // Get pending notifications
+    const notifications = await getPendingNotifications(env, user.id);
 
     return jsonResponse({
       data: {
@@ -38,8 +40,22 @@ export async function handleGoals(
         weekly_steps: weeklySteps,
         daily_progress: Math.min(100, Math.round((todaySteps / goals.daily_target) * 100)),
         weekly_progress: Math.min(100, Math.round((weeklySteps / goals.weekly_target) * 100)),
+        notifications,
       },
     });
+  }
+
+  // POST /api/goals/notifications/read - Mark notifications as read
+  if (path === "/api/goals/notifications/read" && request.method === "POST") {
+    const body = (await request.json()) as { notification_ids: number[] };
+
+    if (!body.notification_ids || !Array.isArray(body.notification_ids)) {
+      return errorResponse("notification_ids array is required");
+    }
+
+    await markNotificationsAsRead(env, body.notification_ids);
+
+    return jsonResponse({ data: { success: true } });
   }
 
   // PUT /api/goals
@@ -109,17 +125,18 @@ async function getWeeklySteps(
   userId: number,
   timezone: string
 ): Promise<number> {
-  const now = new Date();
-  const userNow = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
+  const today = getDateInTimezone(timezone);
+
+  // Parse the date string to calculate start of week
+  const [year, month, day] = today.split("-").map(Number);
+  const todayDate = new Date(year, month - 1, day);
 
   // Get start of week (Monday)
-  const dayOfWeek = userNow.getDay();
+  const dayOfWeek = todayDate.getDay();
   const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const startOfWeek = new Date(userNow);
+  const startOfWeek = new Date(todayDate);
   startOfWeek.setDate(startOfWeek.getDate() - daysFromMonday);
   const startDate = startOfWeek.toISOString().split("T")[0];
-
-  const today = userNow.toISOString().split("T")[0];
 
   const result = await env.DB.prepare(
     `SELECT COALESCE(SUM(step_count), 0) as total

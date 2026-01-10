@@ -7,6 +7,7 @@ import type {
   StepEntry,
   UserGoals,
   Badge,
+  PendingNotification,
   LoginForm,
   RegisterForm,
   CreateChallengeForm,
@@ -121,35 +122,26 @@ export async function getLeaderboard(challengeId: number): Promise<
   return fetchApi(`/challenges/${challengeId}/leaderboard`);
 }
 
-// Entries
-export async function getEntries(
-  challengeId: number
-): Promise<ApiResponse<{ entries: StepEntry[] }>> {
-  return fetchApi(`/challenges/${challengeId}/entries`);
+// Steps (global step entry)
+export async function getSteps(): Promise<ApiResponse<{ entries: StepEntry[] }>> {
+  return fetchApi("/steps");
 }
 
 export async function submitSteps(
-  challengeId: number,
   date: string,
   stepCount: number,
   source: string = "manual"
 ): Promise<ApiResponse<{ entry: StepEntry }>> {
-  return fetchApi(`/challenges/${challengeId}/entries`, {
+  return fetchApi("/steps", {
     method: "POST",
     body: JSON.stringify({ date, step_count: stepCount, source }),
   });
 }
 
-export async function updateSteps(
-  challengeId: number,
-  date: string,
-  stepCount: number,
-  source: string = "manual"
-): Promise<ApiResponse<{ entry: StepEntry }>> {
-  return fetchApi(`/challenges/${challengeId}/entries/${date}`, {
-    method: "PUT",
-    body: JSON.stringify({ step_count: stepCount, source }),
-  });
+export async function getStepsForDate(
+  date: string
+): Promise<ApiResponse<{ entry: StepEntry | null }>> {
+  return fetchApi(`/steps/${date}`);
 }
 
 // Goals
@@ -160,9 +152,19 @@ export async function getGoals(): Promise<
     weekly_steps: number;
     daily_progress: number;
     weekly_progress: number;
+    notifications: PendingNotification[];
   }>
 > {
   return fetchApi("/goals");
+}
+
+export async function markNotificationsAsRead(
+  notificationIds: number[]
+): Promise<ApiResponse<{ success: boolean }>> {
+  return fetchApi("/goals/notifications/read", {
+    method: "POST",
+    body: JSON.stringify({ notification_ids: notificationIds }),
+  });
 }
 
 export async function updateGoals(

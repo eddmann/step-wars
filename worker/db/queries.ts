@@ -1,4 +1,4 @@
-import type { Env, User, Challenge, StepEntry, UserGoals, UserBadge } from "../types";
+import type { Env, User, Challenge, StepEntry, UserGoals, UserBadge, PendingNotification } from "../types";
 import { INVITE_CODE_LENGTH, INVITE_CODE_CHARS } from "../../shared/constants";
 
 // User queries
@@ -196,52 +196,46 @@ export async function getChallengeParticipants(
   return result.results;
 }
 
-// Step entry queries
+// Step entry queries (global - one entry per user per day)
 export async function getStepEntry(
   env: Env,
   userId: number,
-  challengeId: number,
   date: string
 ): Promise<StepEntry | null> {
   return await env.DB.prepare(
-    `SELECT * FROM step_entries
-     WHERE user_id = ? AND challenge_id = ? AND date = ?`
+    `SELECT * FROM step_entries WHERE user_id = ? AND date = ?`
   )
-    .bind(userId, challengeId, date)
+    .bind(userId, date)
     .first<StepEntry>();
 }
 
 export async function upsertStepEntry(
   env: Env,
   userId: number,
-  challengeId: number,
   date: string,
   stepCount: number,
   source: string = "manual"
 ): Promise<StepEntry> {
   const result = await env.DB.prepare(
-    `INSERT INTO step_entries (user_id, challenge_id, date, step_count, source)
-     VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT(user_id, challenge_id, date)
+    `INSERT INTO step_entries (user_id, date, step_count, source)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(user_id, date)
      DO UPDATE SET step_count = excluded.step_count, source = excluded.source, updated_at = datetime('now')
      RETURNING *`
   )
-    .bind(userId, challengeId, date, stepCount, source)
+    .bind(userId, date, stepCount, source)
     .first<StepEntry>();
   return result!;
 }
 
 export async function getUserEntries(
   env: Env,
-  userId: number,
-  challengeId: number
+  userId: number
 ): Promise<StepEntry[]> {
   const result = await env.DB.prepare(
-    `SELECT * FROM step_entries
-     WHERE user_id = ? AND challenge_id = ?
-     ORDER BY date DESC`
+    `SELECT * FROM step_entries WHERE user_id = ? ORDER BY date DESC`
   )
-    .bind(userId, challengeId)
+    .bind(userId)
     .all<StepEntry>();
   return result.results;
 }
@@ -252,7 +246,7 @@ export async function getTodaySteps(
   date: string
 ): Promise<number> {
   const result = await env.DB.prepare(
-    `SELECT COALESCE(SUM(step_count), 0) as total
+    `SELECT COALESCE(step_count, 0) as total
      FROM step_entries
      WHERE user_id = ? AND date = ?`
   )
@@ -262,15 +256,23 @@ export async function getTodaySteps(
 }
 
 // Leaderboard queries
+// Returns leaderboard with two step counts:
+// - confirmed_steps: steps from dates before the edit cutoff (visible to all)
+// - pending_steps: steps from dates on/after the edit cutoff (only visible to the user themselves)
+// Now uses challenge date range instead of challenge_id since step entries are global
 export async function getChallengeLeaderboard(
   env: Env,
   challengeId: number,
-  today: string
+  challengeStartDate: string,
+  challengeEndDate: string,
+  today: string,
+  editCutoffDate: string // Entries on or after this date are still editable
 ): Promise<
   {
     user_id: number;
     name: string;
-    total_steps: number;
+    confirmed_steps: number;
+    pending_steps: number;
     total_points: number;
     today_steps: number;
   }[]
@@ -279,21 +281,38 @@ export async function getChallengeLeaderboard(
     `SELECT
        u.id as user_id,
        u.name,
-       COALESCE(SUM(se.step_count), 0) as total_steps,
+       COALESCE((
+         SELECT SUM(step_count) FROM step_entries
+         WHERE user_id = u.id
+           AND date >= ? AND date <= ?
+           AND date < ?
+       ), 0) as confirmed_steps,
+       COALESCE((
+         SELECT SUM(step_count) FROM step_entries
+         WHERE user_id = u.id
+           AND date >= ? AND date <= ?
+           AND date >= ?
+       ), 0) as pending_steps,
        COALESCE((SELECT SUM(points) FROM daily_points WHERE challenge_id = ? AND user_id = u.id), 0) as total_points,
-       COALESCE((SELECT step_count FROM step_entries WHERE challenge_id = ? AND user_id = u.id AND date = ?), 0) as today_steps
+       COALESCE((SELECT step_count FROM step_entries WHERE user_id = u.id AND date = ?), 0) as today_steps
      FROM challenge_participants cp
      INNER JOIN users u ON cp.user_id = u.id
-     LEFT JOIN step_entries se ON se.user_id = u.id AND se.challenge_id = ?
      WHERE cp.challenge_id = ?
      GROUP BY u.id, u.name
-     ORDER BY total_steps DESC`
+     ORDER BY confirmed_steps DESC`
   )
-    .bind(challengeId, challengeId, today, challengeId, challengeId)
+    .bind(
+      challengeStartDate, challengeEndDate, editCutoffDate,  // confirmed_steps
+      challengeStartDate, challengeEndDate, editCutoffDate,  // pending_steps
+      challengeId,                                            // total_points
+      today,                                                  // today_steps
+      challengeId                                             // WHERE
+    )
     .all<{
       user_id: number;
       name: string;
-      total_steps: number;
+      confirmed_steps: number;
+      pending_steps: number;
       total_points: number;
       today_steps: number;
     }>();
@@ -427,4 +446,36 @@ export async function getUserStats(
       badges_earned: number;
     }>();
   return result!;
+}
+
+// Notification queries
+export async function getPendingNotifications(
+  env: Env,
+  userId: number
+): Promise<PendingNotification[]> {
+  const result = await env.DB.prepare(
+    `SELECT * FROM pending_notifications
+     WHERE user_id = ? AND read_at IS NULL
+     ORDER BY created_at DESC`
+  )
+    .bind(userId)
+    .all<PendingNotification>();
+  return result.results;
+}
+
+export async function markNotificationsAsRead(
+  env: Env,
+  notificationIds: number[]
+): Promise<void> {
+  if (notificationIds.length === 0) return;
+
+  // Build a parameterized query for the IN clause
+  const placeholders = notificationIds.map(() => "?").join(",");
+  await env.DB.prepare(
+    `UPDATE pending_notifications
+     SET read_at = datetime('now')
+     WHERE id IN (${placeholders})`
+  )
+    .bind(...notificationIds)
+    .run();
 }

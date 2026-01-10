@@ -1,6 +1,21 @@
 import type { Env, User } from "../types";
 import { jsonResponse, errorResponse } from "../middleware/cors";
 import { getChallengeById, isParticipant, getChallengeLeaderboard } from "../db/queries";
+import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
+import { getDateTimeInTimezone, getYesterdayInTimezone } from "../../shared/dateUtils";
+
+// Calculate the edit cutoff date - entries on or after this date are still editable
+// If it's before noon, yesterday is still editable, so cutoff is yesterday
+// If it's noon or after, only today is editable, so cutoff is today
+function getEditCutoffDate(date: string, hour: number, timezone: string): string {
+  if (hour < EDIT_DEADLINE_HOUR) {
+    // Before noon: yesterday is still editable
+    return getYesterdayInTimezone(timezone);
+  } else {
+    // Noon or after: only today is editable
+    return date;
+  }
+}
 
 export async function handleLeaderboard(
   request: Request,
@@ -31,31 +46,50 @@ export async function handleLeaderboard(
     return errorResponse("Not a participant in this challenge", 403);
   }
 
-  // Get today's date in user's timezone
-  const now = new Date();
-  const userNow = new Date(
-    now.toLocaleString("en-US", { timeZone: user.timezone })
+  // Get today's date and edit cutoff in user's timezone
+  const { date: today, hour } = getDateTimeInTimezone(user.timezone);
+  const editCutoffDate = getEditCutoffDate(today, hour, user.timezone);
+
+  const rawLeaderboard = await getChallengeLeaderboard(
+    env,
+    challengeId,
+    challenge.start_date,
+    challenge.end_date,
+    today,
+    editCutoffDate
   );
-  const today = userNow.toISOString().split("T")[0];
 
-  const rawLeaderboard = await getChallengeLeaderboard(env, challengeId, today);
+  // Build leaderboard with visibility rules:
+  // - confirmed_steps: visible to everyone (before edit cutoff)
+  // - pending_steps + today_steps: only visible to the user themselves
+  const leaderboard = rawLeaderboard.map((entry, index) => {
+    const isCurrentUser = entry.user_id === user.id;
 
-  // Add rank and current user flag
-  const leaderboard = rawLeaderboard.map((entry, index) => ({
-    rank: index + 1,
-    user_id: entry.user_id,
-    name: entry.name,
-    total_steps: entry.total_steps,
-    total_points: entry.total_points,
-    today_steps: entry.today_steps,
-    is_current_user: entry.user_id === user.id,
-  }));
+    return {
+      rank: index + 1,
+      user_id: entry.user_id,
+      name: entry.name,
+      // For other users, only show confirmed steps
+      // For current user, show confirmed + pending (their full total)
+      total_steps: isCurrentUser
+        ? entry.confirmed_steps + entry.pending_steps
+        : entry.confirmed_steps,
+      total_points: entry.total_points,
+      // Only show today's steps to the user themselves
+      today_steps: isCurrentUser ? entry.today_steps : null,
+      is_current_user: isCurrentUser,
+      // Let the frontend know there are hidden pending steps
+      has_pending_steps: !isCurrentUser && entry.pending_steps > 0,
+    };
+  });
 
   return jsonResponse({
     data: {
       challenge_id: challengeId,
       mode: challenge.mode,
       leaderboard,
+      // Include cutoff info so frontend can display appropriately
+      edit_cutoff_date: editCutoffDate,
     },
   });
 }

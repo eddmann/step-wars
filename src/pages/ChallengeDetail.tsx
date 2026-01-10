@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router";
 import { PageContainer, PageHeader, LoadingPage } from "../components/layout/AppShell";
 import {
   Card,
   CardHeader,
   Button,
-  Input,
-  Modal,
   Badge,
   Podium,
   LeaderboardRow,
@@ -14,28 +12,20 @@ import {
   Users,
   Copy,
   Share2,
+  TransitionLink,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
-import {
-  fetchChallenge,
-  fetchLeaderboard,
-  fetchEntries,
-  submitSteps,
-} from "../store/slices/challengesSlice";
+import { fetchChallenge, fetchLeaderboard } from "../store/slices/challengesSlice";
 import { useToast } from "../components/ui/Toast";
-import { formatDate, getToday, getYesterday, canEditDate, copyToClipboard } from "../lib/utils";
+import { formatDate, copyToClipboard } from "../lib/utils";
 
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
-  const { currentChallenge, leaderboard, entries, isLoading, isSubmitting } = useAppSelector(
+  const { currentChallenge, leaderboard, isLoading } = useAppSelector(
     (state) => state.challenges
   );
-
-  const [isLogOpen, setIsLogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(getToday());
-  const [stepCount, setStepCount] = useState("");
 
   const challengeId = parseInt(id!, 10);
 
@@ -43,33 +33,8 @@ export default function ChallengeDetail() {
     if (challengeId) {
       dispatch(fetchChallenge(challengeId));
       dispatch(fetchLeaderboard(challengeId));
-      dispatch(fetchEntries(challengeId));
     }
   }, [challengeId, dispatch]);
-
-  const handleSubmitSteps = async () => {
-    const steps = parseInt(stepCount, 10);
-    if (isNaN(steps) || steps < 0) {
-      showToast("error", "Please enter a valid step count");
-      return;
-    }
-
-    if (!canEditDate(selectedDate)) {
-      showToast("error", "Cannot edit steps for this date");
-      return;
-    }
-
-    const result = await dispatch(
-      submitSteps({ challengeId, date: selectedDate, stepCount: steps })
-    );
-
-    if (submitSteps.fulfilled.match(result)) {
-      setIsLogOpen(false);
-      setStepCount("");
-      showToast("success", "Steps logged!");
-      dispatch(fetchLeaderboard(challengeId));
-    }
-  };
 
   const handleCopyInviteCode = async () => {
     if (currentChallenge?.invite_code) {
@@ -100,7 +65,6 @@ export default function ChallengeDetail() {
   }
 
   const top3 = leaderboard.slice(0, 3);
-  const currentUserEntry = entries.find((e) => e.date === getToday());
 
   return (
     <PageContainer className="animate-fade-in">
@@ -216,84 +180,25 @@ export default function ChallengeDetail() {
                 valueLabel={currentChallenge.mode === "daily_winner" ? "points" : "steps"}
                 isCurrentUser={entry.is_current_user}
                 todayValue={entry.today_steps}
+                hasPendingSteps={entry.has_pending_steps}
               />
             ))}
           </div>
         ) : (
           <div className="p-8 text-center text-[var(--color-text-tertiary)]">
-            No entries yet. Be the first to log your steps!
+            No entries yet. Log your steps from the Dashboard!
           </div>
         )}
       </Card>
 
-      {/* Log Steps Button */}
+      {/* Link to Dashboard for logging steps */}
       {currentChallenge.status === "active" && (
-        <Button
-          fullWidth
-          onClick={() => setIsLogOpen(true)}
-          className="animate-slide-up stagger-4"
-        >
-          Log Steps
-        </Button>
+        <TransitionLink to="/" className="block animate-slide-up stagger-4">
+          <Button fullWidth variant="secondary">
+            Log Steps from Dashboard
+          </Button>
+        </TransitionLink>
       )}
-
-      {/* Log Steps Modal */}
-      <Modal isOpen={isLogOpen} onClose={() => setIsLogOpen(false)} title="Log Steps">
-        <div className="space-y-4">
-          {/* Quick Date Buttons */}
-          <div>
-            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
-              Date
-            </label>
-            <div className="flex gap-2">
-              <Button
-                variant={selectedDate === getToday() ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setSelectedDate(getToday())}
-              >
-                Today
-              </Button>
-              {canEditDate(getYesterday()) && (
-                <Button
-                  variant={selectedDate === getYesterday() ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() => setSelectedDate(getYesterday())}
-                >
-                  Yesterday
-                </Button>
-              )}
-            </div>
-            <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1">
-              {formatDate(selectedDate)}
-            </p>
-          </div>
-
-          <Input
-            label="Step Count"
-            type="number"
-            placeholder="10000"
-            value={stepCount}
-            onChange={(e) => setStepCount(e.target.value)}
-            min={0}
-            max={100000}
-          />
-
-          {currentUserEntry && selectedDate === getToday() && (
-            <p className="text-[14px] text-[var(--color-text-secondary)]">
-              Current entry: {currentUserEntry.step_count.toLocaleString()} steps
-            </p>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsLogOpen(false)}>
-              Cancel
-            </Button>
-            <Button fullWidth onClick={handleSubmitSteps} isLoading={isSubmitting}>
-              Save
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </PageContainer>
   );
 }

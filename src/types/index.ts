@@ -45,13 +45,12 @@ export interface Participant {
   joined_at: string;
 }
 
-// Step Entry
+// Step Entry (global - one entry per user per day)
 export type StepSource = "manual" | "healthkit" | "google_fit" | "garmin" | "strava";
 
 export interface StepEntry {
   id: number;
   user_id: number;
-  challenge_id: number;
   date: string;
   step_count: number;
   source: StepSource;
@@ -66,8 +65,9 @@ export interface LeaderboardEntry {
   name: string;
   total_steps: number;
   total_points: number; // For daily_winner mode
-  today_steps: number;
+  today_steps: number | null; // null for other users (hidden during edit window)
   is_current_user: boolean;
+  has_pending_steps?: boolean; // true if user has steps in the edit window (not visible to others)
 }
 
 // Goals
@@ -101,6 +101,21 @@ export interface Badge {
   badge_type: BadgeType;
   challenge_id: number | null;
   earned_at: string;
+}
+
+// Notifications
+export type NotificationType = "badge_earned" | "daily_win" | "challenge_won";
+
+export interface PendingNotification {
+  id: number;
+  user_id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  badge_type: string | null;
+  challenge_id: number | null;
+  created_at: string;
+  read_at: string | null;
 }
 
 // API Response wrapper

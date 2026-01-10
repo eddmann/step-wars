@@ -152,7 +152,8 @@ interface LeaderboardRowProps {
   valueLabel?: string;
   src?: string;
   isCurrentUser?: boolean;
-  todayValue?: number;
+  todayValue?: number | null; // null when hidden (other users during edit window)
+  hasPendingSteps?: boolean; // true if user has steps not yet revealed
   onClick?: () => void;
 }
 
@@ -164,6 +165,7 @@ export function LeaderboardRow({
   src,
   isCurrentUser,
   todayValue,
+  hasPendingSteps,
   onClick,
 }: LeaderboardRowProps) {
   const isTopThree = rank <= 3;
@@ -203,11 +205,16 @@ export function LeaderboardRow({
         >
           {isCurrentUser ? "You" : name}
         </p>
-        {todayValue !== undefined && (
+        {/* Show today's steps for current user, or a hint that steps are pending for others */}
+        {todayValue != null ? (
           <p className="text-[12px] text-[var(--color-text-tertiary)]">
             Today: {todayValue.toLocaleString()}
           </p>
-        )}
+        ) : hasPendingSteps ? (
+          <p className="text-[12px] text-[var(--color-text-tertiary)] italic">
+            Steps pending...
+          </p>
+        ) : null}
       </div>
 
       {/* Value */}

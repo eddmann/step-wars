@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { UserGoals } from "../../types";
+import type { UserGoals, PendingNotification } from "../../types";
 import * as api from "../../lib/api";
 
 interface GoalsState {
@@ -8,6 +8,7 @@ interface GoalsState {
   weeklySteps: number;
   dailyProgress: number;
   weeklyProgress: number;
+  notifications: PendingNotification[];
   isLoading: boolean;
   isSubmitting: boolean;
   error: string | null;
@@ -19,6 +20,7 @@ const initialState: GoalsState = {
   weeklySteps: 0,
   dailyProgress: 0,
   weeklyProgress: 0,
+  notifications: [],
   isLoading: false,
   isSubmitting: false,
   error: null,
@@ -71,6 +73,33 @@ export const resumeGoals = createAsyncThunk(
   }
 );
 
+export const submitSteps = createAsyncThunk(
+  "goals/submitSteps",
+  async (
+    { date, stepCount, source = "manual" }: { date: string; stepCount: number; source?: string },
+    { rejectWithValue, dispatch }
+  ) => {
+    const response = await api.submitSteps(date, stepCount, source);
+    if (response.error) {
+      return rejectWithValue(response.error);
+    }
+    // Refresh goals to update todaySteps
+    dispatch(fetchGoals());
+    return response.data!.entry;
+  }
+);
+
+export const markNotificationsAsRead = createAsyncThunk(
+  "goals/markNotificationsAsRead",
+  async (notificationIds: number[], { rejectWithValue }) => {
+    const response = await api.markNotificationsAsRead(notificationIds);
+    if (response.error) {
+      return rejectWithValue(response.error);
+    }
+    return notificationIds;
+  }
+);
+
 const goalsSlice = createSlice({
   name: "goals",
   initialState,
@@ -92,6 +121,7 @@ const goalsSlice = createSlice({
       state.weeklySteps = action.payload.weekly_steps;
       state.dailyProgress = action.payload.daily_progress;
       state.weeklyProgress = action.payload.weekly_progress;
+      state.notifications = action.payload.notifications || [];
     });
     builder.addCase(fetchGoals.rejected, (state, action) => {
       state.isLoading = false;
@@ -131,6 +161,25 @@ const goalsSlice = createSlice({
     // Resume goals
     builder.addCase(resumeGoals.fulfilled, (state, action) => {
       state.goals = action.payload;
+    });
+
+    // Submit steps
+    builder.addCase(submitSteps.pending, (state) => {
+      state.isSubmitting = true;
+      state.error = null;
+    });
+    builder.addCase(submitSteps.fulfilled, (state) => {
+      state.isSubmitting = false;
+    });
+    builder.addCase(submitSteps.rejected, (state, action) => {
+      state.isSubmitting = false;
+      state.error = action.payload as string;
+    });
+
+    // Mark notifications as read
+    builder.addCase(markNotificationsAsRead.fulfilled, (state, action) => {
+      const readIds = new Set(action.payload);
+      state.notifications = state.notifications.filter((n) => !readIds.has(n.id));
     });
   },
 });

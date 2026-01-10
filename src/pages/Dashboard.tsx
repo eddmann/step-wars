@@ -1,21 +1,96 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PageContainer } from "../components/layout/AppShell";
-import { Card, RingProgress, Badge, ChevronRight, Trophy, Flame, TransitionLink } from "../components/ui";
+import {
+  Card,
+  RingProgress,
+  Badge,
+  ChevronRight,
+  Trophy,
+  Flame,
+  TransitionLink,
+  Button,
+  Modal,
+  Input,
+} from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
-import { fetchGoals } from "../store/slices/goalsSlice";
+import { fetchGoals, submitSteps, markNotificationsAsRead } from "../store/slices/goalsSlice";
 import { fetchChallenges } from "../store/slices/challengesSlice";
-import { getGreeting, formatNumber } from "../lib/utils";
+import { getGreeting, formatNumber, getToday, getYesterday, canEditDate, formatDate } from "../lib/utils";
+import { useToast } from "../components/ui/Toast";
 
 export default function Dashboard() {
   const dispatch = useAppDispatch();
+  const { showToast } = useToast();
   const { user } = useAppSelector((state) => state.auth);
-  const { goals, todaySteps, dailyProgress } = useAppSelector((state) => state.goals);
+  const { goals, todaySteps, dailyProgress, isSubmitting, notifications } = useAppSelector((state) => state.goals);
   const { challenges } = useAppSelector((state) => state.challenges);
+
+  const [isLogOpen, setIsLogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(getToday());
+  const [stepCount, setStepCount] = useState("");
+
+  // Track which notifications we've shown to avoid duplicates
+  const shownNotifications = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     dispatch(fetchGoals());
     dispatch(fetchChallenges());
   }, [dispatch]);
+
+  // Show toast notifications for pending notifications
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const unshownNotifications = notifications.filter(
+        (n) => !shownNotifications.current.has(n.id)
+      );
+
+      if (unshownNotifications.length > 0) {
+        // Mark as shown
+        const ids = unshownNotifications.map((n) => n.id);
+        ids.forEach((id) => shownNotifications.current.add(id));
+
+        // Show each toast with a slight delay between them
+        unshownNotifications.forEach((notification, index) => {
+          setTimeout(() => {
+            showToast("success", `${notification.title} ${notification.message}`);
+          }, index * 500);
+        });
+
+        // Mark as read in the backend
+        dispatch(markNotificationsAsRead(ids));
+      }
+    }
+  }, [notifications, dispatch, showToast]);
+
+  // Pre-fill step count when opening modal
+  useEffect(() => {
+    if (isLogOpen && selectedDate === getToday()) {
+      setStepCount(todaySteps > 0 ? todaySteps.toString() : "");
+    }
+  }, [isLogOpen, selectedDate, todaySteps]);
+
+  const handleSubmitSteps = async () => {
+    const steps = parseInt(stepCount, 10);
+    if (isNaN(steps) || steps < 0) {
+      showToast("error", "Please enter a valid step count");
+      return;
+    }
+
+    if (!canEditDate(selectedDate)) {
+      showToast("error", "Cannot edit steps for this date");
+      return;
+    }
+
+    const result = await dispatch(submitSteps({ date: selectedDate, stepCount: steps }));
+
+    if (submitSteps.fulfilled.match(result)) {
+      setIsLogOpen(false);
+      setStepCount("");
+      showToast("success", "Steps logged!");
+    } else {
+      showToast("error", result.payload as string || "Failed to log steps");
+    }
+  };
 
   const activeChallenges = challenges.filter(
     (c) => c.status === "active" || c.status === "pending"
@@ -35,7 +110,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Activity Ring */}
-      <Card className="mb-6 animate-slide-up stagger-1">
+      <Card className="mb-4 animate-slide-up stagger-1">
         <div className="flex flex-col items-center py-4">
           <RingProgress
             value={todaySteps}
@@ -68,6 +143,15 @@ export default function Dashboard() {
           </div>
         </div>
       </Card>
+
+      {/* Log Steps Button */}
+      <Button
+        fullWidth
+        onClick={() => setIsLogOpen(true)}
+        className="mb-6 animate-slide-up stagger-2"
+      >
+        Log Today's Steps
+      </Button>
 
       {/* Streak Card */}
       {goals && goals.current_streak > 0 && (
@@ -156,6 +240,62 @@ export default function Dashboard() {
           </div>
         </Card>
       )}
+
+      {/* Log Steps Modal */}
+      <Modal isOpen={isLogOpen} onClose={() => setIsLogOpen(false)} title="Log Steps">
+        <div className="space-y-4">
+          {/* Quick Date Buttons */}
+          <div>
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
+              Date
+            </label>
+            <div className="flex gap-2">
+              <Button
+                variant={selectedDate === getToday() ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setSelectedDate(getToday())}
+              >
+                Today
+              </Button>
+              {canEditDate(getYesterday()) && (
+                <Button
+                  variant={selectedDate === getYesterday() ? "primary" : "secondary"}
+                  size="sm"
+                  onClick={() => setSelectedDate(getYesterday())}
+                >
+                  Yesterday
+                </Button>
+              )}
+            </div>
+            <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1">
+              {formatDate(selectedDate)}
+            </p>
+          </div>
+
+          <Input
+            label="Step Count"
+            type="number"
+            placeholder="10000"
+            value={stepCount}
+            onChange={(e) => setStepCount(e.target.value)}
+            min={0}
+            max={100000}
+          />
+
+          <p className="text-[13px] text-[var(--color-text-tertiary)]">
+            Your steps will count toward all active challenges.
+          </p>
+
+          <div className="flex gap-3 pt-2">
+            <Button variant="secondary" fullWidth onClick={() => setIsLogOpen(false)}>
+              Cancel
+            </Button>
+            <Button fullWidth onClick={handleSubmitSteps} isLoading={isSubmitting}>
+              Save
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </PageContainer>
   );
 }

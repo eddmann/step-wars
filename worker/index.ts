@@ -3,10 +3,11 @@ import { handleCors, errorResponse } from "./middleware/cors";
 import { getAuthenticatedUser } from "./middleware/auth";
 import { handleAuth } from "./routes/auth";
 import { handleChallenges } from "./routes/challenges";
-import { handleEntries } from "./routes/entries";
 import { handleLeaderboard } from "./routes/leaderboard";
 import { handleGoals } from "./routes/goals";
 import { handleProfile } from "./routes/profile";
+import { handleSteps } from "./routes/steps";
+import { handleScheduled } from "./scheduled";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -32,15 +33,16 @@ export default {
           return errorResponse("Unauthorized", 401);
         }
 
+        // Steps routes (global step entry)
+        if (path.startsWith("/api/steps")) {
+          return await handleSteps(request, env, user, path);
+        }
+
         // Challenges routes
         if (path.startsWith("/api/challenges")) {
           // Check for leaderboard route first
           if (path.includes("/leaderboard")) {
             return await handleLeaderboard(request, env, user, path);
-          }
-          // Check for entries routes
-          if (path.includes("/entries")) {
-            return await handleEntries(request, env, user, path);
           }
           // Challenge CRUD routes
           return await handleChallenges(request, env, user, path);
@@ -72,4 +74,7 @@ export default {
       return errorResponse("Internal server error", 500);
     }
   },
+
+  // Scheduled handler for cron job (runs at noon UTC daily)
+  scheduled: handleScheduled,
 };

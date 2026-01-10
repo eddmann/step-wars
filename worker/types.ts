@@ -47,7 +47,6 @@ export interface ChallengeParticipant {
 export interface StepEntry {
   id: number;
   user_id: number;
-  challenge_id: number;
   date: string;
   step_count: number;
   source: string;
@@ -83,4 +82,16 @@ export interface UserBadge {
   badge_type: string;
   challenge_id: number | null;
   earned_at: string;
+}
+
+export interface PendingNotification {
+  id: number;
+  user_id: number;
+  type: "badge_earned" | "daily_win" | "challenge_won";
+  title: string;
+  message: string;
+  badge_type: string | null;
+  challenge_id: number | null;
+  created_at: string;
+  read_at: string | null;
 }

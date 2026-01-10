@@ -1,6 +1,7 @@
 import type { Env, User } from "../types";
 import { jsonResponse, errorResponse } from "../middleware/cors";
 import { updateUser, getUserBadges, getUserStats, getTodaySteps } from "../db/queries";
+import { getDateInTimezone } from "../../shared/dateUtils";
 
 export async function handleProfile(
   request: Request,
@@ -14,11 +15,7 @@ export async function handleProfile(
     const stats = await getUserStats(env, user.id);
 
     // Get today's steps
-    const now = new Date();
-    const userNow = new Date(
-      now.toLocaleString("en-US", { timeZone: user.timezone })
-    );
-    const today = userNow.toISOString().split("T")[0];
+    const today = getDateInTimezone(user.timezone);
     const todaySteps = await getTodaySteps(env, user.id, today);
 
     return jsonResponse({

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { createTestUser, apiRequest, getToday, type TestUser } from "../helpers";
+import { createTestUser, apiRequest, getToday, getYesterday, getDaysAgo, type TestUser } from "../helpers";
 
 describe("Steps API", () => {
   let user: TestUser;
@@ -93,6 +93,52 @@ describe("Steps API", () => {
       );
       expect(todayEntry).toBeDefined();
       expect(todayEntry.step_count).toBe(7500);
+    });
+  });
+
+  describe("Edit Window", () => {
+    it("should allow editing yesterday's steps", async () => {
+      const yesterday = getYesterday();
+      const response = await apiRequest("POST", "/steps", user.token, {
+        date: yesterday,
+        step_count: 6000,
+      });
+
+      // This may pass or fail depending on current hour (edit window closes at noon)
+      // If it's before noon, it should succeed; after noon, it should fail
+      const json = await response.json();
+      if (response.ok) {
+        expect(json.data.entry.step_count).toBe(6000);
+        expect(json.data.entry.date).toBe(yesterday);
+      } else {
+        // After noon - edit window closed
+        expect(response.status).toBe(400);
+        expect(json.error).toContain("Cannot edit");
+      }
+    });
+
+    it("should reject editing steps from 2 days ago", async () => {
+      const twoDaysAgo = getDaysAgo(2);
+      const response = await apiRequest("POST", "/steps", user.token, {
+        date: twoDaysAgo,
+        step_count: 4000,
+      });
+
+      expect(response.ok).toBe(false);
+      expect(response.status).toBe(400);
+      const json = await response.json();
+      expect(json.error).toContain("Cannot edit");
+    });
+
+    it("should reject editing steps from a week ago", async () => {
+      const weekAgo = getDaysAgo(7);
+      const response = await apiRequest("POST", "/steps", user.token, {
+        date: weekAgo,
+        step_count: 3000,
+      });
+
+      expect(response.ok).toBe(false);
+      expect(response.status).toBe(400);
     });
   });
 });

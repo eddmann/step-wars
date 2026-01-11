@@ -85,3 +85,21 @@ export function getYesterday(): string {
   now.setDate(now.getDate() - 1);
   return now.toISOString().split("T")[0];
 }
+
+/**
+ * Get a date N days ago in YYYY-MM-DD format
+ */
+export function getDaysAgo(days: number): string {
+  const now = new Date();
+  now.setDate(now.getDate() - days);
+  return now.toISOString().split("T")[0];
+}
+
+/**
+ * Get a future date N days from now in YYYY-MM-DD format
+ */
+export function getDaysFromNow(days: number): string {
+  const now = new Date();
+  now.setDate(now.getDate() + days);
+  return now.toISOString().split("T")[0];
+}

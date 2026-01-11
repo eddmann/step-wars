@@ -1,4 +1,5 @@
-import type { Env, User, Session } from "../types";
+import { createMiddleware } from "hono/factory";
+import type { Env, User, Session, AppBindings } from "../types";
 
 export async function getAuthenticatedUser(
   request: Request,
@@ -119,3 +120,13 @@ export async function verifyPassword(
 
   return toHex(new Uint8Array(hash)) === hashHex;
 }
+
+// Hono middleware for protected routes
+export const authMiddleware = createMiddleware<AppBindings>(async (c, next) => {
+  const user = await getAuthenticatedUser(c.req.raw, c.env);
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  c.set("user", user);
+  await next();
+});

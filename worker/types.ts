@@ -97,3 +97,9 @@ export interface PendingNotification {
   created_at: string;
   read_at: string | null;
 }
+
+// Hono app type bindings
+export type AppBindings = {
+  Bindings: Env;
+  Variables: { user: User };
+};

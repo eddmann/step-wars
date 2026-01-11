@@ -1,5 +1,5 @@
-import type { Env, User } from "../types";
-import { jsonResponse, errorResponse } from "../middleware/cors";
+import type { Context } from "hono";
+import type { AppBindings } from "../types";
 import { getChallengeById, isParticipant, getChallengeLeaderboard } from "../db/queries";
 import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 import { getDateTimeInTimezone, getYesterdayInTimezone } from "../../shared/dateUtils";
@@ -17,33 +17,20 @@ function getEditCutoffDate(date: string, hour: number, timezone: string): string
   }
 }
 
-export async function handleLeaderboard(
-  request: Request,
-  env: Env,
-  user: User,
-  path: string
-): Promise<Response> {
-  // Match /api/challenges/:id/leaderboard
-  const match = path.match(/^\/api\/challenges\/(\d+)\/leaderboard$/);
-  if (!match) {
-    return errorResponse("Not found", 404);
-  }
-
-  const challengeId = parseInt(match[1], 10);
-
-  if (request.method !== "GET") {
-    return errorResponse("Method not allowed", 405);
-  }
+// GET /api/challenges/:id/leaderboard
+export async function handleLeaderboard(c: Context<AppBindings>) {
+  const user = c.get("user");
+  const challengeId = parseInt(c.req.param("id"), 10);
 
   // Verify challenge exists and user is participant
-  const challenge = await getChallengeById(env, challengeId);
+  const challenge = await getChallengeById(c.env, challengeId);
   if (!challenge) {
-    return errorResponse("Challenge not found", 404);
+    return c.json({ error: "Challenge not found" }, 404);
   }
 
-  const participant = await isParticipant(env, challengeId, user.id);
+  const participant = await isParticipant(c.env, challengeId, user.id);
   if (!participant) {
-    return errorResponse("Not a participant in this challenge", 403);
+    return c.json({ error: "Not a participant in this challenge" }, 403);
   }
 
   // Get today's date and edit cutoff in challenge's timezone
@@ -52,7 +39,7 @@ export async function handleLeaderboard(
   const editCutoffDate = getEditCutoffDate(today, hour, challenge.timezone);
 
   const rawLeaderboard = await getChallengeLeaderboard(
-    env,
+    c.env,
     challengeId,
     challenge.start_date,
     challenge.end_date,
@@ -94,7 +81,7 @@ export async function handleLeaderboard(
     };
   });
 
-  return jsonResponse({
+  return c.json({
     data: {
       challenge_id: challengeId,
       mode: challenge.mode,
@@ -104,3 +91,5 @@ export async function handleLeaderboard(
     },
   });
 }
+
+export default handleLeaderboard;

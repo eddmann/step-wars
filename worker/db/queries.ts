@@ -1,5 +1,5 @@
 import type { Env, User, Challenge, StepEntry, UserGoals, UserBadge, PendingNotification } from "../types";
-import { INVITE_CODE_LENGTH, INVITE_CODE_CHARS } from "../../shared/constants";
+import { generateInviteCode } from "../../shared/constants";
 
 // User queries
 export async function createUser(
@@ -74,14 +74,6 @@ export async function deleteSession(env: Env, token: string): Promise<void> {
 }
 
 // Challenge queries
-function generateInviteCode(): string {
-  const bytes = new Uint8Array(INVITE_CODE_LENGTH);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes)
-    .map((b) => INVITE_CODE_CHARS[b % INVITE_CODE_CHARS.length])
-    .join("");
-}
-
 export async function createChallenge(
   env: Env,
   creatorId: number,

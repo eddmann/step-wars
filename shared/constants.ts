@@ -22,3 +22,24 @@ export const DAILY_WINNER_POINTS = {
 
 // Streak badge milestones
 export const STREAK_MILESTONES = [7, 14, 30, 60, 100];
+
+// Utility functions
+export function generateInviteCode(): string {
+  const bytes = new Uint8Array(INVITE_CODE_LENGTH);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => INVITE_CODE_CHARS[b % INVITE_CODE_CHARS.length])
+    .join("");
+}
+
+export function parseDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function formatDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}

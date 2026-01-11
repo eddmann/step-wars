@@ -1,7 +1,7 @@
 import type { Env, Challenge } from "../types";
 import { awardBadge, getChallengeParticipants, joinChallenge } from "../db/queries";
 import { getDateTimeInTimezone, getYesterdayInTimezone, getDateInTimezone } from "../../shared/dateUtils";
-import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
+import { EDIT_DEADLINE_HOUR, generateInviteCode, parseDate, formatDate } from "../../shared/constants";
 
 interface DailyRanking {
   user_id: number;
@@ -323,25 +323,4 @@ function calculateNextDates(
     nextStart: formatDate(nextStart),
     nextEnd: formatDate(nextEnd),
   };
-}
-
-function parseDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function generateInviteCode(): string {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes)
-    .map((b) => chars[b % chars.length])
-    .join("");
 }

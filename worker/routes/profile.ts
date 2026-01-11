@@ -1,81 +1,79 @@
-import type { Env, User } from "../types";
-import { jsonResponse, errorResponse } from "../middleware/cors";
+import { Hono } from "hono";
+import type { AppBindings } from "../types";
 import { updateUser, getUserBadges, getUserStats, getTodaySteps } from "../db/queries";
 import { getDateInTimezone } from "../../shared/dateUtils";
 
-export async function handleProfile(
-  request: Request,
-  env: Env,
-  user: User,
-  path: string
-): Promise<Response> {
-  // GET /api/profile
-  if (path === "/api/profile" && request.method === "GET") {
-    const badges = await getUserBadges(env, user.id);
-    const stats = await getUserStats(env, user.id);
+const profile = new Hono<AppBindings>();
 
-    // Get today's steps
-    const today = getDateInTimezone(user.timezone);
-    const todaySteps = await getTodaySteps(env, user.id, today);
+// GET / - Get user profile
+profile.get("/", async (c) => {
+  const user = c.get("user");
+  const badges = await getUserBadges(c.env, user.id);
+  const stats = await getUserStats(c.env, user.id);
 
-    return jsonResponse({
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          timezone: user.timezone,
-          created_at: user.created_at,
-        },
-        stats: {
-          ...stats,
-          today_steps: todaySteps,
-        },
-        badges,
+  // Get today's steps
+  const today = getDateInTimezone(user.timezone);
+  const todaySteps = await getTodaySteps(c.env, user.id, today);
+
+  return c.json({
+    data: {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        timezone: user.timezone,
+        created_at: user.created_at,
       },
-    });
-  }
-
-  // PUT /api/profile
-  if (path === "/api/profile" && request.method === "PUT") {
-    const body = (await request.json()) as {
-      name?: string;
-      email?: string;
-      timezone?: string;
-    };
-
-    const name = body.name ?? user.name;
-    const email = body.email ?? user.email;
-    const timezone = body.timezone; // Optional - only update if provided
-
-    if (!name || name.length < 2) {
-      return errorResponse("Name must be at least 2 characters");
-    }
-
-    if (!email || !email.includes("@")) {
-      return errorResponse("Valid email is required");
-    }
-
-    const updatedUser = await updateUser(env, user.id, name, email.toLowerCase(), timezone);
-
-    return jsonResponse({
-      data: {
-        user: {
-          id: updatedUser!.id,
-          email: updatedUser!.email,
-          name: updatedUser!.name,
-          timezone: updatedUser!.timezone,
-          created_at: updatedUser!.created_at,
-        },
+      stats: {
+        ...stats,
+        today_steps: todaySteps,
       },
-    });
+      badges,
+    },
+  });
+});
+
+// PUT / - Update user profile
+profile.put("/", async (c) => {
+  const user = c.get("user");
+  const body = await c.req.json<{
+    name?: string;
+    email?: string;
+    timezone?: string;
+  }>();
+
+  const name = body.name ?? user.name;
+  const email = body.email ?? user.email;
+  const timezone = body.timezone; // Optional - only update if provided
+
+  if (!name || name.length < 2) {
+    return c.json({ error: "Name must be at least 2 characters" }, 400);
   }
 
-  // GET /api/profile/badges
-  if (path === "/api/profile/badges" && request.method === "GET") {
-    const badges = await getUserBadges(env, user.id);
-    return jsonResponse({ data: { badges } });
+  if (!email || !email.includes("@")) {
+    return c.json({ error: "Valid email is required" }, 400);
   }
 
-  return errorResponse("Not found", 404);
-}
+  const updatedUser = await updateUser(c.env, user.id, name, email.toLowerCase(), timezone);
+
+  return c.json({
+    data: {
+      user: {
+        id: updatedUser!.id,
+        email: updatedUser!.email,
+        name: updatedUser!.name,
+        timezone: updatedUser!.timezone,
+        created_at: updatedUser!.created_at,
+      },
+    },
+  });
+});
+
+// GET /badges - Get user badges
+profile.get("/badges", async (c) => {
+  const user = c.get("user");
+  const badges = await getUserBadges(c.env, user.id);
+  return c.json({ data: { badges } });
+});
+
+export default profile;

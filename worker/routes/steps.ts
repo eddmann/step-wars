@@ -1,9 +1,18 @@
-import type { Env, User } from "../types";
-import { jsonResponse, errorResponse } from "../middleware/cors";
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import type { AppBindings } from "../types";
 import { getStepEntry, upsertStepEntry, getUserEntries } from "../db/queries";
 import { EDIT_DEADLINE_HOUR, MIN_STEPS, MAX_STEPS } from "../../shared/constants";
 import { getDateTimeInTimezone, getYesterdayInTimezone } from "../../shared/dateUtils";
 import { updateUserStreak } from "../services/streak";
+
+// Validation schemas
+const stepEntrySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  step_count: z.number().int().min(MIN_STEPS).max(MAX_STEPS, `Step count must be at most ${MAX_STEPS}`),
+  source: z.enum(["manual", "healthkit", "google_fit", "garmin", "strava"]).optional(),
+});
 
 // Check if a date is within the edit window
 function canEditDate(dateStr: string, userTimezone: string): boolean {
@@ -17,61 +26,47 @@ function canEditDate(dateStr: string, userTimezone: string): boolean {
   return false;
 }
 
-export async function handleSteps(
-  request: Request,
-  env: Env,
-  user: User,
-  path: string
-): Promise<Response> {
-  // GET /api/steps - Get user's step entries
-  if (path === "/api/steps" && request.method === "GET") {
-    const entries = await getUserEntries(env, user.id);
-    return jsonResponse({ data: { entries } });
-  }
+const steps = new Hono<AppBindings>();
 
-  // POST /api/steps - Log global steps
-  if (path === "/api/steps" && request.method === "POST") {
-    const body = (await request.json()) as {
-      date: string;
-      step_count: number;
-      source?: string;
-    };
+// GET / - Get user's step entries
+steps.get("/", async (c) => {
+  const user = c.get("user");
+  const entries = await getUserEntries(c.env, user.id);
+  return c.json({ data: { entries } });
+});
 
-    if (!body.date || body.step_count === undefined) {
-      return errorResponse("Date and step_count are required");
-    }
+// POST / - Log global steps
+steps.post("/", zValidator("json", stepEntrySchema), async (c) => {
+  const user = c.get("user");
+  const body = c.req.valid("json");
 
-    if (body.step_count < MIN_STEPS || body.step_count > MAX_STEPS) {
-      return errorResponse(`Step count must be between ${MIN_STEPS} and ${MAX_STEPS}`);
-    }
-
-    if (!canEditDate(body.date, user.timezone)) {
-      return errorResponse(
-        "Cannot edit steps for this date. Entries can only be modified until noon the next day."
-      );
-    }
-
-    const entry = await upsertStepEntry(
-      env,
-      user.id,
-      body.date,
-      body.step_count,
-      body.source || "manual"
+  if (!canEditDate(body.date, user.timezone)) {
+    return c.json(
+      { error: "Cannot edit steps for this date. Entries can only be modified until noon the next day." },
+      400
     );
-
-    // Update user's streak after logging steps
-    await updateUserStreak(env, user.id);
-
-    return jsonResponse({ data: { entry } });
   }
 
-  // GET /api/steps/:date - Get specific date entry
-  const dateMatch = path.match(/^\/api\/steps\/(\d{4}-\d{2}-\d{2})$/);
-  if (dateMatch && request.method === "GET") {
-    const date = dateMatch[1];
-    const entry = await getStepEntry(env, user.id, date);
-    return jsonResponse({ data: { entry } });
-  }
+  const entry = await upsertStepEntry(
+    c.env,
+    user.id,
+    body.date,
+    body.step_count,
+    body.source || "manual"
+  );
 
-  return errorResponse("Not found", 404);
-}
+  // Update user's streak after logging steps
+  await updateUserStreak(c.env, user.id);
+
+  return c.json({ data: { entry } });
+});
+
+// GET /:date - Get specific date entry
+steps.get("/:date", async (c) => {
+  const user = c.get("user");
+  const date = c.req.param("date");
+  const entry = await getStepEntry(c.env, user.id, date);
+  return c.json({ data: { entry } });
+});
+
+export default steps;

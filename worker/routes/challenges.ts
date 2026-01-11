@@ -1,5 +1,5 @@
-import type { Env, User } from "../types";
-import { jsonResponse, errorResponse } from "../middleware/cors";
+import { Hono } from "hono";
+import type { AppBindings } from "../types";
 import {
   createChallenge,
   getChallengeById,
@@ -10,110 +10,108 @@ import {
   getChallengeParticipants,
 } from "../db/queries";
 
-export async function handleChallenges(
-  request: Request,
-  env: Env,
-  user: User,
-  path: string
-): Promise<Response> {
-  // GET /api/challenges - List user's challenges
-  if (path === "/api/challenges" && request.method === "GET") {
-    const challenges = await getUserChallenges(env, user.id);
-    return jsonResponse({ data: { challenges } });
+const challenges = new Hono<AppBindings>();
+
+// GET / - List user's challenges
+challenges.get("/", async (c) => {
+  const user = c.get("user");
+  const userChallenges = await getUserChallenges(c.env, user.id);
+  return c.json({ data: { challenges: userChallenges } });
+});
+
+// POST / - Create a new challenge
+challenges.post("/", async (c) => {
+  const user = c.get("user");
+  const body = await c.req.json<{
+    title: string;
+    description?: string;
+    start_date: string;
+    end_date: string;
+    mode: "daily_winner" | "cumulative";
+    is_recurring?: boolean;
+    recurring_interval?: "weekly" | "monthly";
+  }>();
+
+  if (!body.title || !body.start_date || !body.end_date || !body.mode) {
+    return c.json({ error: "Title, start_date, end_date, and mode are required" }, 400);
   }
 
-  // POST /api/challenges - Create a new challenge
-  if (path === "/api/challenges" && request.method === "POST") {
-    const body = (await request.json()) as {
-      title: string;
-      description?: string;
-      start_date: string;
-      end_date: string;
-      mode: "daily_winner" | "cumulative";
-      is_recurring?: boolean;
-      recurring_interval?: "weekly" | "monthly";
-    };
-
-    if (!body.title || !body.start_date || !body.end_date || !body.mode) {
-      return errorResponse("Title, start_date, end_date, and mode are required");
-    }
-
-    if (body.mode !== "daily_winner" && body.mode !== "cumulative") {
-      return errorResponse("Mode must be 'daily_winner' or 'cumulative'");
-    }
-
-    if (new Date(body.start_date) > new Date(body.end_date)) {
-      return errorResponse("Start date must be before end date");
-    }
-
-    const challenge = await createChallenge(
-      env,
-      user.id,
-      body.title,
-      body.description || null,
-      body.start_date,
-      body.end_date,
-      body.mode,
-      user.timezone,  // Use creator's timezone for the challenge
-      body.is_recurring || false,
-      body.recurring_interval || null
-    );
-
-    return jsonResponse({ data: { challenge } }, 201);
+  if (body.mode !== "daily_winner" && body.mode !== "cumulative") {
+    return c.json({ error: "Mode must be 'daily_winner' or 'cumulative'" }, 400);
   }
 
-  // POST /api/challenges/join - Join a challenge with invite code
-  if (path === "/api/challenges/join" && request.method === "POST") {
-    const body = (await request.json()) as { invite_code: string };
-
-    if (!body.invite_code) {
-      return errorResponse("Invite code is required");
-    }
-
-    const challenge = await getChallengeByInviteCode(env, body.invite_code);
-    if (!challenge) {
-      return errorResponse("Invalid invite code", 404);
-    }
-
-    const alreadyJoined = await isParticipant(env, challenge.id, user.id);
-    if (alreadyJoined) {
-      return errorResponse("Already a participant in this challenge");
-    }
-
-    await joinChallenge(env, challenge.id, user.id);
-
-    return jsonResponse({ data: { challenge } });
+  if (new Date(body.start_date) > new Date(body.end_date)) {
+    return c.json({ error: "Start date must be before end date" }, 400);
   }
 
-  // GET /api/challenges/:id - Get challenge details
-  const challengeMatch = path.match(/^\/api\/challenges\/(\d+)$/);
-  if (challengeMatch && request.method === "GET") {
-    const challengeId = parseInt(challengeMatch[1], 10);
+  const challenge = await createChallenge(
+    c.env,
+    user.id,
+    body.title,
+    body.description || null,
+    body.start_date,
+    body.end_date,
+    body.mode,
+    user.timezone, // Use creator's timezone for the challenge
+    body.is_recurring || false,
+    body.recurring_interval || null
+  );
 
-    const challenge = await getChallengeById(env, challengeId);
-    if (!challenge) {
-      return errorResponse("Challenge not found", 404);
-    }
+  return c.json({ data: { challenge } }, 201);
+});
 
-    // Check if user is a participant
-    const participant = await isParticipant(env, challengeId, user.id);
-    if (!participant) {
-      return errorResponse("Not a participant in this challenge", 403);
-    }
+// POST /join - Join a challenge with invite code
+challenges.post("/join", async (c) => {
+  const user = c.get("user");
+  const body = await c.req.json<{ invite_code: string }>();
 
-    const participants = await getChallengeParticipants(env, challengeId);
+  if (!body.invite_code) {
+    return c.json({ error: "Invite code is required" }, 400);
+  }
 
-    return jsonResponse({
-      data: {
-        challenge: {
-          ...challenge,
-          is_recurring: Boolean(challenge.is_recurring),
-        },
-        participants,
-        participant_count: participants.length,
+  const challenge = await getChallengeByInviteCode(c.env, body.invite_code);
+  if (!challenge) {
+    return c.json({ error: "Invalid invite code" }, 404);
+  }
+
+  const alreadyJoined = await isParticipant(c.env, challenge.id, user.id);
+  if (alreadyJoined) {
+    return c.json({ error: "Already a participant in this challenge" }, 400);
+  }
+
+  await joinChallenge(c.env, challenge.id, user.id);
+
+  return c.json({ data: { challenge } });
+});
+
+// GET /:id - Get challenge details
+challenges.get("/:id", async (c) => {
+  const user = c.get("user");
+  const challengeId = parseInt(c.req.param("id"), 10);
+
+  const challenge = await getChallengeById(c.env, challengeId);
+  if (!challenge) {
+    return c.json({ error: "Challenge not found" }, 404);
+  }
+
+  // Check if user is a participant
+  const participant = await isParticipant(c.env, challengeId, user.id);
+  if (!participant) {
+    return c.json({ error: "Not a participant in this challenge" }, 403);
+  }
+
+  const participants = await getChallengeParticipants(c.env, challengeId);
+
+  return c.json({
+    data: {
+      challenge: {
+        ...challenge,
+        is_recurring: Boolean(challenge.is_recurring),
       },
-    });
-  }
+      participants,
+      participant_count: participants.length,
+    },
+  });
+});
 
-  return errorResponse("Not found", 404);
-}
+export default challenges;

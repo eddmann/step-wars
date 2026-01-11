@@ -6,85 +6,83 @@
  * IMPORTANT: These endpoints should only work in development mode.
  */
 
-import type { Env, User, Challenge } from "../types";
-import { jsonResponse, errorResponse } from "../middleware/cors";
+import { Hono } from "hono";
+import type { AppBindings, Challenge } from "../types";
 import { upsertStepEntry, awardBadge, getChallengeParticipants, joinChallenge } from "../db/queries";
+import { generateInviteCode, parseDate, formatDate } from "../../shared/constants";
 
-export async function handleTestRoutes(
-  request: Request,
-  env: Env,
-  user: User | null,
-  path: string
-): Promise<Response> {
+const test = new Hono<AppBindings>();
+
+// POST /steps - Insert step entries bypassing edit window
+test.post("/steps", async (c) => {
   // Only allow test routes in development environment
-  if (env.ENVIRONMENT !== "development") {
-    return errorResponse("Not found", 404);
+  if (c.env.ENVIRONMENT !== "development") {
+    return c.json({ error: "Not found" }, 404);
   }
 
-  // POST /api/__test__/steps - Insert step entries bypassing edit window
-  if (path === "/api/__test__/steps" && request.method === "POST") {
-    if (!user) {
-      return errorResponse("Unauthorized", 401);
-    }
+  const user = c.get("user");
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
 
-    const body = (await request.json()) as {
-      date: string;
-      step_count: number;
-      source?: string;
-    };
+  const body = await c.req.json<{
+    date: string;
+    step_count: number;
+    source?: string;
+  }>();
 
-    if (!body.date || body.step_count === undefined) {
-      return errorResponse("Date and step_count are required");
-    }
+  if (!body.date || body.step_count === undefined) {
+    return c.json({ error: "Date and step_count are required" }, 400);
+  }
 
-    // Bypass edit window validation - insert directly
-    // Note: source must be one of: manual, healthkit, google_fit, garmin, strava
-    const entry = await upsertStepEntry(
-      env,
-      user.id,
-      body.date,
-      body.step_count,
-      body.source || "manual"
+  // Bypass edit window validation - insert directly
+  // Note: source must be one of: manual, healthkit, google_fit, garmin, strava
+  const entry = await upsertStepEntry(
+    c.env,
+    user.id,
+    body.date,
+    body.step_count,
+    body.source || "manual"
+  );
+
+  return c.json({ data: { entry } });
+});
+
+// POST /run-cron - Manually trigger the scheduled handler
+// This version FORCES processing regardless of timezone/time checks
+test.post("/run-cron", async (c) => {
+  // Only allow test routes in development environment
+  if (c.env.ENVIRONMENT !== "development") {
+    return c.json({ error: "Not found" }, 404);
+  }
+
+  try {
+    // 1. Force-activate all pending challenges
+    await forceActivatePendingChallenges(c.env);
+
+    // 2. Force-calculate daily points for all active challenges
+    const body = await c.req.json<{ dates?: string[] }>().catch(() => ({} as { dates?: string[] }));
+    await forceCalculateDailyPoints(c.env, body.dates);
+
+    // 3. Force-finalize challenges that have ended
+    await forceFinalizeChallenges(c.env);
+
+    return c.json({
+      data: { success: true, message: "Cron job executed successfully (forced)" },
+    });
+  } catch (error) {
+    console.error("[Test] Error running cron:", error);
+    return c.json(
+      { error: `Cron execution failed: ${error instanceof Error ? error.message : "Unknown error"}` },
+      500
     );
-
-    return jsonResponse({ data: { entry } });
   }
-
-  // POST /api/__test__/run-cron - Manually trigger the scheduled handler
-  // This version FORCES processing regardless of timezone/time checks
-  if (path === "/api/__test__/run-cron" && request.method === "POST") {
-    try {
-      // 1. Force-activate all pending challenges
-      await forceActivatePendingChallenges(env);
-
-      // 2. Force-calculate daily points for all active challenges
-      const body = (await request.json().catch(() => ({}))) as {
-        dates?: string[];
-      };
-      await forceCalculateDailyPoints(env, body.dates);
-
-      // 3. Force-finalize challenges that have ended
-      await forceFinalizeChallenges(env);
-
-      return jsonResponse({
-        data: { success: true, message: "Cron job executed successfully (forced)" },
-      });
-    } catch (error) {
-      console.error("[Test] Error running cron:", error);
-      return errorResponse(
-        `Cron execution failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        500
-      );
-    }
-  }
-
-  return errorResponse("Not found", 404);
-}
+});
 
 /**
  * Force-activate all pending challenges (bypasses timezone checks)
  */
-async function forceActivatePendingChallenges(env: Env): Promise<void> {
+async function forceActivatePendingChallenges(env: AppBindings["Bindings"]): Promise<void> {
   await env.DB.prepare(
     `UPDATE challenges SET status = 'active', updated_at = datetime('now')
      WHERE status = 'pending'`
@@ -94,7 +92,7 @@ async function forceActivatePendingChallenges(env: Env): Promise<void> {
 /**
  * Force-calculate daily points for specified dates (bypasses timezone checks)
  */
-async function forceCalculateDailyPoints(env: Env, dates?: string[]): Promise<void> {
+async function forceCalculateDailyPoints(env: AppBindings["Bindings"], dates?: string[]): Promise<void> {
   const activeChallenges = await env.DB.prepare(
     `SELECT * FROM challenges WHERE mode = 'daily_winner' AND status = 'active'`
   ).all<Challenge>();
@@ -112,7 +110,7 @@ async function forceCalculateDailyPoints(env: Env, dates?: string[]): Promise<vo
   }
 }
 
-async function getChallengeDates(env: Env, challenge: Challenge): Promise<string[]> {
+async function getChallengeDates(env: AppBindings["Bindings"], challenge: Challenge): Promise<string[]> {
   // Get all distinct dates with step entries for this challenge's participants
   const result = await env.DB.prepare(
     `SELECT DISTINCT se.date
@@ -130,7 +128,7 @@ async function getChallengeDates(env: Env, challenge: Challenge): Promise<string
 }
 
 async function calculateDailyPointsForDate(
-  env: Env,
+  env: AppBindings["Bindings"],
   challengeId: number,
   date: string
 ): Promise<void> {
@@ -185,7 +183,7 @@ async function calculateDailyPointsForDate(
 /**
  * Force-finalize all challenges that have ended (bypasses timezone checks)
  */
-async function forceFinalizeChallenges(env: Env): Promise<void> {
+async function forceFinalizeChallenges(env: AppBindings["Bindings"]): Promise<void> {
   const activeChallenges = await env.DB.prepare(
     `SELECT * FROM challenges WHERE status = 'active'`
   ).all<Challenge>();
@@ -200,7 +198,7 @@ async function forceFinalizeChallenges(env: Env): Promise<void> {
   }
 }
 
-async function forceFinalize(env: Env, challenge: Challenge): Promise<void> {
+async function forceFinalize(env: AppBindings["Bindings"], challenge: Challenge): Promise<void> {
   // Update status to completed
   await env.DB.prepare(
     `UPDATE challenges SET status = 'completed', updated_at = datetime('now') WHERE id = ?`
@@ -262,7 +260,7 @@ async function forceFinalize(env: Env, challenge: Challenge): Promise<void> {
 /**
  * Create the next recurring challenge (test version)
  */
-async function createNextRecurringChallenge(env: Env, challenge: Challenge): Promise<void> {
+async function createNextRecurringChallenge(env: AppBindings["Bindings"], challenge: Challenge): Promise<void> {
   const { nextStart, nextEnd } = calculateNextDates(
     challenge.start_date,
     challenge.end_date,
@@ -325,23 +323,4 @@ function calculateNextDates(
   };
 }
 
-function parseDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function generateInviteCode(): string {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes)
-    .map((b) => chars[b % chars.length])
-    .join("");
-}
+export default test;

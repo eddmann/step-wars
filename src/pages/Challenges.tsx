@@ -464,6 +464,12 @@ function ChallengeCard({ challenge, delay = 0 }: ChallengeCardProps) {
     completed: "default" as const,
   };
 
+  const statusLabel = {
+    active: "Active",
+    pending: "Upcoming",
+    completed: "Completed",
+  };
+
   return (
     <TransitionLink
       to={`/challenges/${challenge.id}`}
@@ -496,7 +502,7 @@ function ChallengeCard({ challenge, delay = 0 }: ChallengeCardProps) {
                 {challenge.title}
               </p>
               <Badge variant={statusVariant[challenge.status as keyof typeof statusVariant]}>
-                {challenge.status}
+                {statusLabel[challenge.status as keyof typeof statusLabel]}
               </Badge>
             </div>
 

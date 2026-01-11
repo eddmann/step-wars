@@ -83,8 +83,8 @@ export default function ChallengeDetail() {
       <Card className="mb-6 animate-slide-up stagger-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Badge variant={currentChallenge.status === "active" ? "success" : "default"}>
-              {currentChallenge.status}
+            <Badge variant={currentChallenge.status === "active" ? "success" : currentChallenge.status === "pending" ? "warning" : "default"}>
+              {currentChallenge.status === "active" ? "Active" : currentChallenge.status === "pending" ? "Upcoming" : "Completed"}
             </Badge>
             <Badge variant="info">
               {currentChallenge.mode === "daily_winner" ? "Daily Winner" : "Cumulative"}

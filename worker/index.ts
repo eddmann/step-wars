@@ -7,6 +7,7 @@ import { handleLeaderboard } from "./routes/leaderboard";
 import { handleGoals } from "./routes/goals";
 import { handleProfile } from "./routes/profile";
 import { handleSteps } from "./routes/steps";
+import { handleTestRoutes } from "./routes/test";
 import { handleScheduled } from "./scheduled";
 
 export default {
@@ -24,6 +25,12 @@ export default {
       // Auth routes (no authentication required)
       if (path.startsWith("/api/auth/")) {
         return await handleAuth(request, env, path);
+      }
+
+      // Test-only routes (development only)
+      if (path.startsWith("/api/__test__/")) {
+        const user = await getAuthenticatedUser(request, env);
+        return await handleTestRoutes(request, env, user, path);
       }
 
       // All other API routes require authentication

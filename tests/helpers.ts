@@ -103,3 +103,27 @@ export function getDaysFromNow(days: number): string {
   now.setDate(now.getDate() + days);
   return now.toISOString().split("T")[0];
 }
+
+/**
+ * Insert step entry bypassing edit window (test-only endpoint)
+ */
+export async function insertTestSteps(
+  token: string,
+  date: string,
+  stepCount: number
+): Promise<Response> {
+  return apiRequest("POST", "/__test__/steps", token, {
+    date,
+    step_count: stepCount,
+  });
+}
+
+/**
+ * Manually trigger the cron job (test-only endpoint)
+ */
+export async function runCron(): Promise<Response> {
+  return fetch(`${API_BASE}/__test__/run-cron`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+}

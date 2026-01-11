@@ -1,5 +1,7 @@
 import type { Env, Challenge } from "../types";
 import { awardBadge } from "../db/queries";
+import { getDateTimeInTimezone, getYesterdayInTimezone, getDateInTimezone } from "../../shared/dateUtils";
+import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 
 interface DailyRanking {
   user_id: number;
@@ -9,22 +11,30 @@ interface DailyRanking {
 
 /**
  * Calculate and store daily points for all active daily_winner challenges.
- * Called at noon each day after the edit window closes.
+ * Called at noon UTC daily. For each challenge, we check if it's past noon
+ * in the challenge's timezone before processing.
  */
-export async function calculateDailyPoints(env: Env, yesterday: string): Promise<void> {
+export async function calculateDailyPoints(env: Env): Promise<void> {
   // Get all active daily_winner challenges
   const activeChallenges = await env.DB.prepare(
     `SELECT * FROM challenges
      WHERE mode = 'daily_winner'
-     AND status = 'active'
-     AND start_date <= ?
-     AND end_date >= ?`
+     AND status = 'active'`
   )
-    .bind(yesterday, yesterday)
     .all<Challenge>();
 
   for (const challenge of activeChallenges.results) {
-    await calculateDailyPointsForChallenge(env, challenge.id, yesterday);
+    // Get the current time in the challenge's timezone
+    const { hour } = getDateTimeInTimezone(challenge.timezone);
+    const challengeYesterday = getYesterdayInTimezone(challenge.timezone);
+
+    // Only process if it's past the edit deadline in this challenge's timezone
+    if (hour >= EDIT_DEADLINE_HOUR) {
+      // Check if yesterday was within the challenge period
+      if (challengeYesterday >= challenge.start_date && challengeYesterday <= challenge.end_date) {
+        await calculateDailyPointsForChallenge(env, challenge.id, challengeYesterday);
+      }
+    }
   }
 }
 
@@ -86,22 +96,25 @@ async function calculateDailyPointsForChallenge(
 }
 
 /**
- * Finalize challenges that have ended (end_date < yesterday).
- * Marks them as completed and awards challenge_winner badge.
+ * Finalize challenges that have ended in their respective timezones.
+ * A challenge is finalized when: end_date < today (in challenge timezone) AND it's past noon.
  */
-export async function finalizeChallenges(env: Env, yesterday: string): Promise<void> {
-  // Get all challenges that should be completed
-  // (end_date is before yesterday, so edit window has closed)
-  const challengesToComplete = await env.DB.prepare(
-    `SELECT * FROM challenges
-     WHERE status = 'active'
-     AND end_date < ?`
+export async function finalizeChallenges(env: Env): Promise<void> {
+  // Get all active challenges
+  const activeChallenges = await env.DB.prepare(
+    `SELECT * FROM challenges WHERE status = 'active'`
   )
-    .bind(yesterday)
     .all<Challenge>();
 
-  for (const challenge of challengesToComplete.results) {
-    await finalizeChallenge(env, challenge);
+  for (const challenge of activeChallenges.results) {
+    // Get the current time in the challenge's timezone
+    const { date: challengeToday, hour } = getDateTimeInTimezone(challenge.timezone);
+
+    // Only finalize if it's past the edit deadline and the challenge has ended
+    // (end_date < today means the edit window for the last day has closed)
+    if (hour >= EDIT_DEADLINE_HOUR && challenge.end_date < challengeToday) {
+      await finalizeChallenge(env, challenge);
+    }
   }
 }
 
@@ -175,16 +188,30 @@ async function finalizeChallenge(env: Env, challenge: Challenge): Promise<void> 
 
 /**
  * Activate pending challenges that should now be active.
- * (start_date <= today and status = 'pending')
+ * Each challenge is activated based on its own timezone.
  */
-export async function activatePendingChallenges(env: Env, today: string): Promise<void> {
-  await env.DB.prepare(
-    `UPDATE challenges
-     SET status = 'active', updated_at = datetime('now')
-     WHERE status = 'pending' AND start_date <= ?`
+export async function activatePendingChallenges(env: Env): Promise<void> {
+  // Get all pending challenges
+  const pendingChallenges = await env.DB.prepare(
+    `SELECT * FROM challenges WHERE status = 'pending'`
   )
-    .bind(today)
-    .run();
+    .all<Challenge>();
+
+  for (const challenge of pendingChallenges.results) {
+    // Get today in the challenge's timezone
+    const challengeToday = getDateInTimezone(challenge.timezone);
+
+    // Activate if start_date has arrived in the challenge's timezone
+    if (challenge.start_date <= challengeToday) {
+      await env.DB.prepare(
+        `UPDATE challenges
+         SET status = 'active', updated_at = datetime('now')
+         WHERE id = ?`
+      )
+        .bind(challenge.id)
+        .run();
+    }
+  }
 }
 
 /**

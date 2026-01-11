@@ -81,14 +81,15 @@ export async function createChallenge(
   startDate: string,
   endDate: string,
   mode: "daily_winner" | "cumulative",
+  timezone: string,
   isRecurring: boolean,
   recurringInterval: "weekly" | "monthly" | null
 ): Promise<Challenge> {
   const inviteCode = generateInviteCode();
 
   const result = await env.DB.prepare(
-    `INSERT INTO challenges (title, description, creator_id, start_date, end_date, mode, invite_code, is_recurring, recurring_interval)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO challenges (title, description, creator_id, start_date, end_date, mode, invite_code, timezone, is_recurring, recurring_interval)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      RETURNING *`
   )
     .bind(
@@ -99,6 +100,7 @@ export async function createChallenge(
       endDate,
       mode,
       inviteCode,
+      timezone,
       isRecurring ? 1 : 0,
       recurringInterval
     )

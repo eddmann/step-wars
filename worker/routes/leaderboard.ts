@@ -46,9 +46,10 @@ export async function handleLeaderboard(
     return errorResponse("Not a participant in this challenge", 403);
   }
 
-  // Get today's date and edit cutoff in user's timezone
-  const { date: today, hour } = getDateTimeInTimezone(user.timezone);
-  const editCutoffDate = getEditCutoffDate(today, hour, user.timezone);
+  // Get today's date and edit cutoff in challenge's timezone
+  // This ensures all participants see the same day boundaries for fairness
+  const { date: today, hour } = getDateTimeInTimezone(challenge.timezone);
+  const editCutoffDate = getEditCutoffDate(today, hour, challenge.timezone);
 
   const rawLeaderboard = await getChallengeLeaderboard(
     env,

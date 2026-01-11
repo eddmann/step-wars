@@ -47,26 +47,56 @@ export function formatRelativeDate(dateStr: string): string {
 }
 
 /**
- * Get today's date in YYYY-MM-DD format
+ * Get the browser's timezone
  */
-export function getToday(): string {
-  return new Date().toISOString().split("T")[0];
+function getBrowserTimezone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
 /**
- * Get yesterday's date in YYYY-MM-DD format
+ * Get today's date in YYYY-MM-DD format (timezone-aware)
+ */
+export function getToday(): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: getBrowserTimezone(),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  return formatter.format(new Date());
+}
+
+/**
+ * Get yesterday's date in YYYY-MM-DD format (timezone-aware)
  */
 export function getYesterday(): string {
   const date = new Date();
   date.setDate(date.getDate() - 1);
-  return date.toISOString().split("T")[0];
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: getBrowserTimezone(),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  return formatter.format(date);
+}
+
+/**
+ * Get current hour in browser's timezone (0-23)
+ */
+function getCurrentHour(): number {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: getBrowserTimezone(),
+    hour: 'numeric',
+    hour12: false
+  });
+  return parseInt(formatter.format(new Date()), 10);
 }
 
 /**
  * Check if a date can still be edited (before noon the next day)
  */
 export function canEditDate(dateStr: string): boolean {
-  const now = new Date();
   const today = getToday();
   const yesterday = getYesterday();
 
@@ -75,9 +105,9 @@ export function canEditDate(dateStr: string): boolean {
     return true;
   }
 
-  // Can edit yesterday until noon
+  // Can edit yesterday until noon (in browser's timezone)
   if (dateStr === yesterday) {
-    return now.getHours() < EDIT_DEADLINE_HOUR;
+    return getCurrentHour() < EDIT_DEADLINE_HOUR;
   }
 
   return false;
@@ -92,8 +122,7 @@ export function getEditDeadline(dateStr: string): string | null {
   }
 
   if (dateStr === getYesterday()) {
-    const now = new Date();
-    const hoursLeft = EDIT_DEADLINE_HOUR - now.getHours();
+    const hoursLeft = EDIT_DEADLINE_HOUR - getCurrentHour();
     if (hoursLeft > 0) {
       return `${hoursLeft} hour${hoursLeft === 1 ? "" : "s"} left to edit`;
     }
@@ -160,10 +189,10 @@ export function getBadgeName(badgeType: string): string {
 }
 
 /**
- * Generate a greeting based on time of day
+ * Generate a greeting based on time of day (timezone-aware)
  */
 export function getGreeting(): string {
-  const hour = new Date().getHours();
+  const hour = getCurrentHour();
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   return "Good evening";

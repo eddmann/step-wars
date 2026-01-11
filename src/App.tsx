@@ -7,6 +7,7 @@ import Challenges from "./pages/Challenges";
 import ChallengeDetail from "./pages/ChallengeDetail";
 import Goals from "./pages/Goals";
 import Profile from "./pages/Profile";
+import StepHistory from "./pages/StepHistory";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/challenges/:id" element={<ChallengeDetail />} />
                 <Route path="/goals" element={<Goals />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/history" element={<StepHistory />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AppShell>

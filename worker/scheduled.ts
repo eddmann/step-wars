@@ -5,39 +5,31 @@ import { calculateDailyPoints, finalizeChallenges, activatePendingChallenges } f
  * Scheduled handler for the cron job.
  * Runs at noon UTC daily (0 12 * * *).
  *
- * At this point:
- * - Yesterday's edit window has closed (noon today = deadline for yesterday)
- * - We can safely calculate daily points for yesterday
- * - We can finalize challenges that ended before yesterday
+ * Each challenge is processed according to its own timezone:
+ * - Challenges where it's past noon are processed
+ * - Daily points are calculated for each challenge's "yesterday"
+ * - Challenges are finalized when their end_date has passed
  */
 export async function handleScheduled(
   _controller: import("@cloudflare/workers-types").ScheduledController,
   env: Env,
   _ctx: import("@cloudflare/workers-types").ExecutionContext
 ): Promise<void> {
-  // Use UTC for the cron job - the finalization is date-based
-  // and we process all challenges regardless of user timezone
-  const now = new Date();
-  const today = now.toISOString().split("T")[0];
-
-  // Yesterday (the day whose edit window just closed)
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-  console.log(`[Scheduled] Running daily finalization for ${yesterdayStr}`);
+  console.log("[Scheduled] Running daily finalization");
 
   try {
     // 1. Activate any pending challenges that should now be active
-    await activatePendingChallenges(env, today);
+    // (each challenge checked against its own timezone)
+    await activatePendingChallenges(env);
     console.log("[Scheduled] Activated pending challenges");
 
-    // 2. Calculate daily points for yesterday (for daily_winner challenges)
-    await calculateDailyPoints(env, yesterdayStr);
+    // 2. Calculate daily points for challenges past their edit deadline
+    // (each challenge uses its own timezone to determine "yesterday")
+    await calculateDailyPoints(env);
     console.log("[Scheduled] Calculated daily points");
 
-    // 3. Finalize challenges that ended before yesterday
-    await finalizeChallenges(env, yesterdayStr);
+    // 3. Finalize challenges that have ended (past edit deadline in their timezone)
+    await finalizeChallenges(env);
     console.log("[Scheduled] Finalized completed challenges");
 
     console.log("[Scheduled] Daily finalization complete");

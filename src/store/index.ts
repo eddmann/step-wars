@@ -4,6 +4,7 @@ import authReducer from "./slices/authSlice";
 import challengesReducer from "./slices/challengesSlice";
 import goalsReducer from "./slices/goalsSlice";
 import profileReducer from "./slices/profileSlice";
+import stepsReducer from "./slices/stepsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     challenges: challengesReducer,
     goals: goalsReducer,
     profile: profileReducer,
+    steps: stepsReducer,
   },
 });
 

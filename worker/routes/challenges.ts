@@ -54,6 +54,7 @@ export async function handleChallenges(
       body.start_date,
       body.end_date,
       body.mode,
+      user.timezone,  // Use creator's timezone for the challenge
       body.is_recurring || false,
       body.recurring_interval || null
     );

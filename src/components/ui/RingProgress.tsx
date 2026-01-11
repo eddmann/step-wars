@@ -87,13 +87,17 @@ export function RingProgress({
     function animate(currentTime: number) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
+
+      if (progress >= 1) {
+        // Ensure we end exactly at the target value
+        setDisplayValue(value);
+        return;
+      }
+
       const easeOut = 1 - Math.pow(2, -10 * progress);
       const current = startValue + (value - startValue) * easeOut;
       setDisplayValue(current);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+      requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);

@@ -18,6 +18,7 @@ import {
   Trophy,
   Flame,
   TrendingUp,
+  Footprints,
   Sun,
   Moon,
   Monitor,
@@ -201,7 +202,7 @@ export default function Profile() {
       )}
 
       {/* Theme Selector */}
-      <Card className="mb-6 animate-slide-up" style={{ animationDelay: "210ms" }}>
+      <Card className="mb-6 animate-slide-up" style={{ animationDelay: "240ms" }}>
         <h3 className="text-[15px] font-semibold text-[var(--color-text-primary)] mb-3">
           Appearance
         </h3>
@@ -231,7 +232,16 @@ export default function Profile() {
       </Card>
 
       {/* Settings */}
-      <CardGroup className="mb-6 animate-slide-up" style={{ animationDelay: "240ms" }}>
+      <CardGroup className="mb-6 animate-slide-up" style={{ animationDelay: "270ms" }}>
+        <CardRow onClick={() => navigate("/history")}>
+          <div className="flex items-center gap-3">
+            <Footprints className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+            <span className="text-[var(--color-text-primary)]">
+              Step History
+            </span>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+        </CardRow>
         <CardRow onClick={() => setIsEditOpen(true)}>
           <div className="flex items-center gap-3">
             <Settings className="w-5 h-5 text-[var(--color-text-tertiary)]" />
@@ -249,7 +259,7 @@ export default function Profile() {
         fullWidth
         onClick={handleLogout}
         className="animate-slide-up"
-        style={{ animationDelay: "270ms" }}
+        style={{ animationDelay: "300ms" }}
       >
         <LogOut className="w-5 h-5" />
         Sign Out

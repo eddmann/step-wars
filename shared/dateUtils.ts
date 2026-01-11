@@ -41,17 +41,18 @@ export function getDateTimeInTimezone(timezone: string): { date: string; hour: n
 
 /**
  * Get yesterday's date in YYYY-MM-DD format for a given timezone.
+ * Correctly calculates "yesterday" within the target timezone.
  */
 export function getYesterdayInTimezone(timezone: string): string {
-  const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
-  return formatter.format(yesterday);
+  // Get today's date in the target timezone first
+  const today = getDateInTimezone(timezone);
+  // Parse and subtract 1 day
+  const [year, month, day] = today.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() - 1);
+  // Format back to YYYY-MM-DD
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }

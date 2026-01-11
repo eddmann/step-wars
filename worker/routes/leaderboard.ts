@@ -60,10 +60,20 @@ export async function handleLeaderboard(
     editCutoffDate
   );
 
+  // Sort by the appropriate metric based on challenge mode
+  const sortedLeaderboard = [...rawLeaderboard].sort((a, b) => {
+    if (challenge.mode === "daily_winner") {
+      // Sort by total points for daily_winner mode
+      return b.total_points - a.total_points;
+    }
+    // Sort by confirmed steps for cumulative mode
+    return b.confirmed_steps - a.confirmed_steps;
+  });
+
   // Build leaderboard with visibility rules:
   // - confirmed_steps: visible to everyone (before edit cutoff)
   // - pending_steps + today_steps: only visible to the user themselves
-  const leaderboard = rawLeaderboard.map((entry, index) => {
+  const leaderboard = sortedLeaderboard.map((entry, index) => {
     const isCurrentUser = entry.user_id === user.id;
 
     return {

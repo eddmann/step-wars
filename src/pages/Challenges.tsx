@@ -15,6 +15,7 @@ import {
   TransitionLink,
   TrendingUp,
   Award,
+  RefreshCw,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import {
@@ -303,6 +304,103 @@ export default function Challenges() {
             </div>
           </div>
 
+          {/* Recurring Challenge Toggle */}
+          <div>
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
+              Repeat Challenge
+            </label>
+            <button
+              type="button"
+              onClick={() => setFormData({
+                ...formData,
+                is_recurring: !formData.is_recurring,
+                recurring_interval: !formData.is_recurring ? "weekly" : null
+              })}
+              className={cn(
+                "w-full p-4 rounded-[var(--radius-md)] text-left transition-all duration-200",
+                "border-2 flex items-center gap-3",
+                formData.is_recurring
+                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
+                  : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+              )}
+            >
+              <div className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                formData.is_recurring
+                  ? "bg-[var(--color-accent)]/20"
+                  : "bg-[var(--color-surface)]"
+              )}>
+                <RefreshCw className={cn(
+                  "w-5 h-5",
+                  formData.is_recurring
+                    ? "text-[var(--color-accent)]"
+                    : "text-[var(--color-text-tertiary)]"
+                )} />
+              </div>
+              <div className="flex-1">
+                <p className={cn(
+                  "text-[15px] font-semibold",
+                  formData.is_recurring
+                    ? "text-[var(--color-accent)]"
+                    : "text-[var(--color-text-primary)]"
+                )}>
+                  {formData.is_recurring ? "Recurring" : "One-time"}
+                </p>
+                <p className="text-[12px] text-[var(--color-text-secondary)] leading-tight">
+                  {formData.is_recurring
+                    ? "Auto-creates next challenge when this one ends"
+                    : "Challenge ends after the end date"}
+                </p>
+              </div>
+            </button>
+
+            {/* Interval Selector (shown when recurring is enabled) */}
+            {formData.is_recurring && (
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, recurring_interval: "weekly" })}
+                  className={cn(
+                    "p-3 rounded-[var(--radius-md)] text-center transition-all duration-200",
+                    "border-2",
+                    formData.recurring_interval === "weekly"
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                  )}
+                >
+                  <p className={cn(
+                    "text-[14px] font-semibold",
+                    formData.recurring_interval === "weekly"
+                      ? "text-[var(--color-accent)]"
+                      : "text-[var(--color-text-primary)]"
+                  )}>
+                    Weekly
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, recurring_interval: "monthly" })}
+                  className={cn(
+                    "p-3 rounded-[var(--radius-md)] text-center transition-all duration-200",
+                    "border-2",
+                    formData.recurring_interval === "monthly"
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                  )}
+                >
+                  <p className={cn(
+                    "text-[14px] font-semibold",
+                    formData.recurring_interval === "monthly"
+                      ? "text-[var(--color-accent)]"
+                      : "text-[var(--color-text-primary)]"
+                  )}>
+                    Monthly
+                  </p>
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" fullWidth onClick={() => setIsCreateOpen(false)}>
               Cancel
@@ -354,6 +452,7 @@ interface ChallengeCardProps {
     mode: string;
     status: string;
     participant_count: number;
+    is_recurring?: boolean;
   };
   delay?: number;
 }
@@ -410,6 +509,12 @@ function ChallengeCard({ challenge, delay = 0 }: ChallengeCardProps) {
                 <Calendar className="w-3.5 h-3.5" />
                 {formatDate(challenge.end_date)}
               </span>
+              {challenge.is_recurring && (
+                <span className="flex items-center gap-1 text-[var(--color-accent)]">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Recurring
+                </span>
+              )}
             </div>
           </div>
 

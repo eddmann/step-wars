@@ -41,8 +41,8 @@ export const fetchProfile = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   "profile/update",
-  async ({ name, email }: { name: string; email: string }, { rejectWithValue }) => {
-    const response = await api.updateProfile(name, email);
+  async ({ name, email, timezone }: { name: string; email: string; timezone?: string }, { rejectWithValue }) => {
+    const response = await api.updateProfile(name, email, timezone);
     if (response.error) {
       return rejectWithValue(response.error);
     }

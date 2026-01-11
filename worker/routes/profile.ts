@@ -41,10 +41,12 @@ export async function handleProfile(
     const body = (await request.json()) as {
       name?: string;
       email?: string;
+      timezone?: string;
     };
 
     const name = body.name ?? user.name;
     const email = body.email ?? user.email;
+    const timezone = body.timezone; // Optional - only update if provided
 
     if (!name || name.length < 2) {
       return errorResponse("Name must be at least 2 characters");
@@ -54,7 +56,7 @@ export async function handleProfile(
       return errorResponse("Valid email is required");
     }
 
-    const updatedUser = await updateUser(env, user.id, name, email.toLowerCase());
+    const updatedUser = await updateUser(env, user.id, name, email.toLowerCase(), timezone);
 
     return jsonResponse({
       data: {

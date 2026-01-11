@@ -3,6 +3,7 @@ import { jsonResponse, errorResponse } from "../middleware/cors";
 import { getStepEntry, upsertStepEntry, getUserEntries } from "../db/queries";
 import { EDIT_DEADLINE_HOUR, MIN_STEPS, MAX_STEPS } from "../../shared/constants";
 import { getDateTimeInTimezone, getYesterdayInTimezone } from "../../shared/dateUtils";
+import { updateUserStreak } from "../services/streak";
 
 // Check if a date is within the edit window
 function canEditDate(dateStr: string, userTimezone: string): boolean {
@@ -57,6 +58,9 @@ export async function handleSteps(
       body.step_count,
       body.source || "manual"
     );
+
+    // Update user's streak after logging steps
+    await updateUserStreak(env, user.id);
 
     return jsonResponse({ data: { entry } });
   }

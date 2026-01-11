@@ -8,7 +8,7 @@
 
 import type { Env, User, Challenge } from "../types";
 import { jsonResponse, errorResponse } from "../middleware/cors";
-import { upsertStepEntry, awardBadge } from "../db/queries";
+import { upsertStepEntry, awardBadge, getChallengeParticipants, joinChallenge } from "../db/queries";
 
 export async function handleTestRoutes(
   request: Request,
@@ -16,6 +16,11 @@ export async function handleTestRoutes(
   user: User | null,
   path: string
 ): Promise<Response> {
+  // Only allow test routes in development environment
+  if (env.ENVIRONMENT !== "development") {
+    return errorResponse("Not found", 404);
+  }
+
   // POST /api/__test__/steps - Insert step entries bypassing edit window
   if (path === "/api/__test__/steps" && request.method === "POST") {
     if (!user) {
@@ -247,4 +252,96 @@ async function forceFinalize(env: Env, challenge: Challenge): Promise<void> {
   if (winner) {
     await awardBadge(env, winner.user_id, "challenge_winner", challenge.id);
   }
+
+  // If this is a recurring challenge, create the next one
+  if (challenge.is_recurring && challenge.recurring_interval) {
+    await createNextRecurringChallenge(env, challenge);
+  }
+}
+
+/**
+ * Create the next recurring challenge (test version)
+ */
+async function createNextRecurringChallenge(env: Env, challenge: Challenge): Promise<void> {
+  const { nextStart, nextEnd } = calculateNextDates(
+    challenge.start_date,
+    challenge.end_date,
+    challenge.recurring_interval!
+  );
+
+  const inviteCode = generateInviteCode();
+
+  const result = await env.DB.prepare(
+    `INSERT INTO challenges (title, description, creator_id, start_date, end_date, mode, invite_code, timezone, is_recurring, recurring_interval, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 'pending')
+     RETURNING *`
+  )
+    .bind(
+      challenge.title,
+      challenge.description,
+      challenge.creator_id,
+      nextStart,
+      nextEnd,
+      challenge.mode,
+      inviteCode,
+      challenge.timezone,
+      challenge.recurring_interval
+    )
+    .first<Challenge>();
+
+  if (!result) return;
+
+  const participants = await getChallengeParticipants(env, challenge.id);
+  for (const participant of participants) {
+    await joinChallenge(env, result.id, participant.user_id);
+  }
+}
+
+function calculateNextDates(
+  startDate: string,
+  endDate: string,
+  interval: "weekly" | "monthly"
+): { nextStart: string; nextEnd: string } {
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+  const durationMs = end.getTime() - start.getTime();
+  const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24));
+
+  let nextStart: Date;
+  if (interval === "weekly") {
+    nextStart = new Date(start);
+    nextStart.setDate(nextStart.getDate() + 7);
+  } else {
+    nextStart = new Date(start);
+    nextStart.setMonth(nextStart.getMonth() + 1);
+  }
+
+  const nextEnd = new Date(nextStart);
+  nextEnd.setDate(nextEnd.getDate() + durationDays);
+
+  return {
+    nextStart: formatDate(nextStart),
+    nextEnd: formatDate(nextEnd),
+  };
+}
+
+function parseDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function generateInviteCode(): string {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => chars[b % chars.length])
+    .join("");
 }

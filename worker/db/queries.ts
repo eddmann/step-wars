@@ -35,8 +35,17 @@ export async function updateUser(
   env: Env,
   id: number,
   name: string,
-  email: string
+  email: string,
+  timezone?: string
 ): Promise<User | null> {
+  if (timezone) {
+    return await env.DB.prepare(
+      `UPDATE users SET name = ?, email = ?, timezone = ?, updated_at = datetime('now')
+       WHERE id = ? RETURNING *`
+    )
+      .bind(name, email, timezone, id)
+      .first<User>();
+  }
   return await env.DB.prepare(
     `UPDATE users SET name = ?, email = ?, updated_at = datetime('now')
      WHERE id = ? RETURNING *`
@@ -238,6 +247,19 @@ export async function getUserEntries(
     `SELECT * FROM step_entries WHERE user_id = ? ORDER BY date DESC`
   )
     .bind(userId)
+    .all<StepEntry>();
+  return result.results;
+}
+
+export async function getRecentStepEntries(
+  env: Env,
+  userId: number,
+  limit: number
+): Promise<StepEntry[]> {
+  const result = await env.DB.prepare(
+    `SELECT * FROM step_entries WHERE user_id = ? ORDER BY date DESC LIMIT ?`
+  )
+    .bind(userId, limit)
     .all<StepEntry>();
   return result.results;
 }
@@ -467,17 +489,19 @@ export async function getPendingNotifications(
 
 export async function markNotificationsAsRead(
   env: Env,
+  userId: number,
   notificationIds: number[]
 ): Promise<void> {
   if (notificationIds.length === 0) return;
 
   // Build a parameterized query for the IN clause
+  // Also filter by user_id to prevent marking other users' notifications
   const placeholders = notificationIds.map(() => "?").join(",");
   await env.DB.prepare(
     `UPDATE pending_notifications
      SET read_at = datetime('now')
-     WHERE id IN (${placeholders})`
+     WHERE id IN (${placeholders}) AND user_id = ?`
   )
-    .bind(...notificationIds)
+    .bind(...notificationIds, userId)
     .run();
 }

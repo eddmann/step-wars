@@ -204,10 +204,11 @@ export async function getProfile(): Promise<
 
 export async function updateProfile(
   name: string,
-  email: string
+  email: string,
+  timezone?: string
 ): Promise<ApiResponse<{ user: User }>> {
   return fetchApi("/profile", {
     method: "PUT",
-    body: JSON.stringify({ name, email }),
+    body: JSON.stringify({ name, email, timezone }),
   });
 }

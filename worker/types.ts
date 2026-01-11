@@ -1,6 +1,7 @@
 export interface Env {
   DB: import("@cloudflare/workers-types").D1Database;
   ASSETS?: import("@cloudflare/workers-types").Fetcher;
+  ENVIRONMENT?: string;
 }
 
 export interface User {

@@ -51,6 +51,7 @@ export default function Profile() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [timezone, setTimezone] = useState("");
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -60,6 +61,7 @@ export default function Profile() {
     if (user) {
       setName(user.name);
       setEmail(user.email);
+      setTimezone(user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
     }
   }, [user]);
 
@@ -74,7 +76,11 @@ export default function Profile() {
       return;
     }
 
-    const result = await dispatch(updateProfile({ name: name.trim(), email: email.trim() }));
+    const result = await dispatch(updateProfile({
+      name: name.trim(),
+      email: email.trim(),
+      timezone: timezone || undefined,
+    }));
     if (updateProfile.fulfilled.match(result)) {
       setIsEditOpen(false);
       showToast("success", "Profile updated!");
@@ -282,6 +288,23 @@ export default function Profile() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
           />
+
+          <div>
+            <label className="block text-[13px] font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
+              Timezone
+            </label>
+            <select
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
+            >
+              {Intl.supportedValuesOf("timeZone").map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz.replace(/_/g, " ")}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" fullWidth onClick={() => setIsEditOpen(false)}>

@@ -1,5 +1,5 @@
 import type { Env, Challenge } from "../types";
-import { awardBadge } from "../db/queries";
+import { awardBadge, getChallengeParticipants, joinChallenge } from "../db/queries";
 import { getDateTimeInTimezone, getYesterdayInTimezone, getDateInTimezone } from "../../shared/dateUtils";
 import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 
@@ -184,6 +184,11 @@ async function finalizeChallenge(env: Env, challenge: Challenge): Promise<void> 
       );
     }
   }
+
+  // If this is a recurring challenge, create the next one
+  if (challenge.is_recurring && challenge.recurring_interval) {
+    await createNextRecurringChallenge(env, challenge);
+  }
 }
 
 /**
@@ -232,4 +237,111 @@ async function createNotification(
   )
     .bind(userId, type, title, message, badgeType, challengeId)
     .run();
+}
+
+/**
+ * Create the next recurring challenge after one completes.
+ * Auto-enrolls all participants from the completed challenge.
+ */
+async function createNextRecurringChallenge(env: Env, challenge: Challenge): Promise<void> {
+  // Calculate next dates based on recurring interval
+  const { nextStart, nextEnd } = calculateNextDates(
+    challenge.start_date,
+    challenge.end_date,
+    challenge.recurring_interval!
+  );
+
+  // Generate a new invite code
+  const inviteCode = generateInviteCode();
+
+  // Create the new challenge
+  const result = await env.DB.prepare(
+    `INSERT INTO challenges (title, description, creator_id, start_date, end_date, mode, invite_code, timezone, is_recurring, recurring_interval, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 'pending')
+     RETURNING *`
+  )
+    .bind(
+      challenge.title,
+      challenge.description,
+      challenge.creator_id,
+      nextStart,
+      nextEnd,
+      challenge.mode,
+      inviteCode,
+      challenge.timezone,
+      challenge.recurring_interval
+    )
+    .first<Challenge>();
+
+  if (!result) {
+    console.error(`[Recurring] Failed to create next challenge for ${challenge.id}`);
+    return;
+  }
+
+  // Get all participants from the completed challenge and auto-enroll them
+  const participants = await getChallengeParticipants(env, challenge.id);
+  for (const participant of participants) {
+    await joinChallenge(env, result.id, participant.user_id);
+  }
+
+  console.log(`[Recurring] Created next challenge ${result.id} from ${challenge.id} with ${participants.length} participants`);
+}
+
+/**
+ * Calculate the next start and end dates for a recurring challenge.
+ */
+function calculateNextDates(
+  startDate: string,
+  endDate: string,
+  interval: "weekly" | "monthly"
+): { nextStart: string; nextEnd: string } {
+  // Parse the dates
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+
+  // Calculate duration in days
+  const durationMs = end.getTime() - start.getTime();
+  const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24));
+
+  // Calculate next start based on interval
+  let nextStart: Date;
+  if (interval === "weekly") {
+    // Next challenge starts 7 days after the original start
+    nextStart = new Date(start);
+    nextStart.setDate(nextStart.getDate() + 7);
+  } else {
+    // Monthly: next challenge starts 1 month after the original start
+    nextStart = new Date(start);
+    nextStart.setMonth(nextStart.getMonth() + 1);
+  }
+
+  // Next end is same duration after next start
+  const nextEnd = new Date(nextStart);
+  nextEnd.setDate(nextEnd.getDate() + durationDays);
+
+  return {
+    nextStart: formatDate(nextStart),
+    nextEnd: formatDate(nextEnd),
+  };
+}
+
+function parseDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function generateInviteCode(): string {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => chars[b % chars.length])
+    .join("");
 }

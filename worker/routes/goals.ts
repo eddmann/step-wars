@@ -53,7 +53,7 @@ export async function handleGoals(
       return errorResponse("notification_ids array is required");
     }
 
-    await markNotificationsAsRead(env, body.notification_ids);
+    await markNotificationsAsRead(env, user.id, body.notification_ids);
 
     return jsonResponse({ data: { success: true } });
   }

@@ -33,13 +33,18 @@
 
     html, body {
       height: 100%;
-      overflow: hidden;
     }
 
     body {
       font-family: 'News Cycle', 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
       background: var(--space-black);
       color: var(--star-white);
+      overflow: hidden;
+    }
+
+    body.scrollable {
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     /* ========================================
@@ -254,25 +259,35 @@
     }
 
     /* ========================================
-       CTA SECTION (appears after crawl)
+       PAGE WRAPPER (scrollable content)
     ======================================== */
-    .cta {
+    .page {
       position: fixed;
       inset: 0;
       z-index: 20;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2rem;
       opacity: 0;
       pointer-events: none;
       transition: opacity 1.5s ease-in-out;
     }
 
-    .cta.visible {
+    .page.visible {
+      position: relative;
       opacity: 1;
       pointer-events: auto;
+    }
+
+    /* ========================================
+       CTA SECTION (appears after crawl)
+    ======================================== */
+    .cta {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      position: relative;
+      padding: 4rem 2rem;
     }
 
     .cta__logo {
@@ -380,6 +395,165 @@
     }
 
     /* ========================================
+       SCROLL INDICATOR
+    ======================================== */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255, 255, 255, 0.4);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .scroll-indicator:hover {
+      color: var(--crawl-yellow);
+    }
+
+    .scroll-indicator__text {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .scroll-indicator__arrow {
+      width: 24px;
+      height: 24px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(8px); }
+      60% { transform: translateY(4px); }
+    }
+
+    /* ========================================
+       FEATURES SECTION
+    ======================================== */
+    .features {
+      padding: 6rem 2rem 8rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .features__title {
+      text-align: center;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--crawl-yellow);
+      margin-bottom: 4rem;
+    }
+
+    .features__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3rem;
+    }
+
+    @media (max-width: 800px) {
+      .features__grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+    }
+
+    .feature {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .feature.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .feature:nth-child(1) { transition-delay: 0.1s; }
+    .feature:nth-child(2) { transition-delay: 0.2s; }
+    .feature:nth-child(3) { transition-delay: 0.3s; }
+    .feature:nth-child(4) { transition-delay: 0.4s; }
+    .feature:nth-child(5) { transition-delay: 0.5s; }
+    .feature:nth-child(6) { transition-delay: 0.6s; }
+
+    .feature__icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 1.25rem;
+      color: var(--crawl-yellow);
+    }
+
+    .feature__title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature__text {
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ========================================
+       DIVIDER
+    ======================================== */
+    .divider {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, rgba(245, 197, 24, 0.4), transparent);
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       FOOTER
+    ======================================== */
+    .footer {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .footer__text {
+      font-size: 0.875rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .footer__text span {
+      color: var(--crawl-yellow);
+    }
+
+    .footer__credit {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .footer__credit a {
+      color: rgba(255, 255, 255, 0.5);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer__credit a:hover {
+      color: var(--crawl-yellow);
+    }
+
+    /* ========================================
        REDUCED MOTION
     ======================================== */
     @media (prefers-reduced-motion: reduce) {
@@ -388,13 +562,15 @@
       .logo,
       .crawl-wrapper,
       .crawl-container,
-      .star--twinkle {
+      .star--twinkle,
+      .scroll-indicator__arrow {
         animation: none;
       }
 
       .intro { opacity: 0; }
       .logo-container { opacity: 0; }
-      .cta { opacity: 1; pointer-events: auto; }
+      .page { opacity: 1; pointer-events: auto; position: relative; }
+      .feature { opacity: 1; transform: none; }
     }
 
     /* ========================================
@@ -474,21 +650,103 @@
     </div>
   </div>
 
-  <!-- CTA Section (appears after crawl) -->
-  <div class="cta" id="cta">
-    <svg class="cta__logo" viewBox="0 0 863 464" xmlns="http://www.w3.org/2000/svg">
-      <g transform="translate(0,464) scale(0.1,-0.1)" fill="currentColor" stroke="none">
-        <path d="M1607 4570 c-428 -51 -704 -400 -667 -845 16 -191 105 -364 250 -484 l61 -51 -600 0 -601 0 0 -453 0 -453 59 -229 c64 -253 299 -1165 417 -1620 41 -159 80 -305 85 -322 l11 -33 1438 0 1439 0 26 88 c15 48 34 111 43 140 l16 52 152 0 153 0 10 -37 c6 -21 24 -83 39 -138 l29 -100 851 -3 852 -2 0 156 c0 86 4 154 9 152 5 -2 70 -72 146 -156 l137 -153 841 3 c834 3 843 4 922 26 228 63 393 197 490 397 65 136 79 203 80 385 0 118 -4 170 -18 219 -39 142 -93 242 -181 334 l-46 47 269 0 270 0 0 705 1 705 -477 0 -478 1 71 37 c134 72 212 141 283 251 141 220 172 553 77 833 -46 136 -86 198 -201 313 -115 115 -175 154 -318 204 l-102 36 -2885 1 c-1587 1 -2916 -2 -2953 -6z m2683 -475 l0 -275 -282 0 -283 0 0 -685 0 -686 -310 0 -310 0 -3 686 -2 686 -588 -3 c-535 -3 -590 -5 -619 -20 -41 -23 -51 -53 -26 -80 10 -11 101 -61 203 -111 171 -83 190 -95 255 -161 114 -115 145 -203 145 -409 0 -322 -95 -472 -355 -558 l-70 -24 -893 -5 -892 -5 0 262 0 262 683 4 c598 3 689 5 737 20 74 22 104 46 108 86 5 46 -47 91 -187 165 -339 179 -441 311 -441 571 0 167 39 274 139 378 60 64 111 97 194 129 119 46 118 46 1495 47 l1302 1 0 -275z m1680 0 l0 -275 -470 0 -471 0 3 -102 3 -103 343 0 342 0 0 -197 0 -198 -345 0 -345 0 0 -105 0 -105 475 0 475 0 0 -282 0 -283 -777 2 -778 3 -3 960 -2 960 775 0 775 0 0 -275z m1390 261 c282 -52 471 -234 526 -506 32 -159 4 -378 -64 -505 -42 -78 -145 -177 -231 -219 -140 -71 -188 -78 -531 -84 l-305 -4 0 -174 0 -174 813 0 813 0 -3 -120 -3 -120 -1123 -3 -1122 -2 0 963 0 962 578 0 c443 -1 594 -4 652 -14z m-6467 -2158 c84 -372 213 -906 218 -900 6 6 220 757 250 875 l11 47 281 -2 281 -3 48 -205 c120 -517 171 -713 179 -697 8 13 110 422 198 792 l26 110 307 3 c245 2 307 0 303 -10 -2 -7 -27 -92 -54 -188 -27 -96 -142 -499 -256 -895 -113 -396 -212 -742 -220 -770 l-14 -50 -294 3 -294 3 -45 177 c-95 373 -171 652 -178 652 -6 0 -59 -176 -181 -608 l-63 -222 -310 2 -310 3 -78 300 c-43 165 -108 415 -144 555 -36 140 -74 287 -84 325 -10 39 -48 187 -85 330 -37 143 -75 290 -85 328 l-19 67 304 0 303 0 5 -22z m3507 -755 c123 -428 246 -858 275 -956 l52 -177 -293 0 c-162 0 -297 0 -301 0 -5 0 -26 58 -47 130 l-39 130 -316 0 -316 0 -40 -130 -40 -131 -318 -2 c-184 -1 -317 2 -317 7 0 5 58 199 129 430 71 232 171 556 221 721 111 363 207 678 221 723 l11 32 447 0 448 0 223 -777z m1742 745 c245 -67 392 -206 443 -419 19 -83 19 -257 0 -351 -42 -199 -157 -325 -368 -403 l-48 -18 73 -74 72 -73 457 0 c265 0 479 4 510 10 72 14 103 38 107 83 4 44 -15 59 -178 147 -205 111 -283 178 -340 290 -38 77 -52 145 -52 258 -1 281 151 480 417 547 121 30 209 35 673 35 l472 0 0 -259 0 -260 -417 -3 c-455 -4 -476 -6 -517 -61 -34 -45 -9 -66 210 -172 182 -89 200 -100 267 -168 83 -82 120 -148 142 -252 45 -215 -12 -442 -145 -575 -67 -67 -150 -111 -264 -140 -76 -19 -111 -20 -855 -20 l-776 1 -205 220 c-113 121 -237 255 -277 297 l-72 77 -1 -300 0 -300 -305 0 -305 0 0 958 0 958 593 -3 592 -4 97 -26z"/>
-        <path d="M6755 3711 l0 -171 211 0 c245 0 298 10 336 63 32 45 33 162 2 204 -48 64 -66 68 -319 71 l-230 3 0 -170z"/>
-        <path d="M3623 1330 l-90 -290 188 0 c104 0 189 4 189 8 0 22 -179 567 -187 569 -5 2 -50 -127 -100 -287z"/>
-        <path d="M5480 1566 l0 -178 208 4 c182 4 213 7 253 25 36 16 51 30 68 65 51 107 7 220 -98 247 -20 5 -125 11 -234 13 l-197 3 0 -179z"/>
-      </g>
-    </svg>
-    <p class="cta__tagline">May the steps be with you</p>
-    <div class="cta__buttons">
-      <a href="/register" class="btn btn--primary">Join the Order</a>
-      <a href="/login" class="btn btn--secondary">Jedi Login</a>
-    </div>
+  <!-- Page Content (appears after crawl) -->
+  <div class="page" id="page">
+    <!-- CTA Section -->
+    <section class="cta">
+      <svg class="cta__logo" viewBox="0 0 863 464" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(0,464) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+          <path d="M1607 4570 c-428 -51 -704 -400 -667 -845 16 -191 105 -364 250 -484 l61 -51 -600 0 -601 0 0 -453 0 -453 59 -229 c64 -253 299 -1165 417 -1620 41 -159 80 -305 85 -322 l11 -33 1438 0 1439 0 26 88 c15 48 34 111 43 140 l16 52 152 0 153 0 10 -37 c6 -21 24 -83 39 -138 l29 -100 851 -3 852 -2 0 156 c0 86 4 154 9 152 5 -2 70 -72 146 -156 l137 -153 841 3 c834 3 843 4 922 26 228 63 393 197 490 397 65 136 79 203 80 385 0 118 -4 170 -18 219 -39 142 -93 242 -181 334 l-46 47 269 0 270 0 0 705 1 705 -477 0 -478 1 71 37 c134 72 212 141 283 251 141 220 172 553 77 833 -46 136 -86 198 -201 313 -115 115 -175 154 -318 204 l-102 36 -2885 1 c-1587 1 -2916 -2 -2953 -6z m2683 -475 l0 -275 -282 0 -283 0 0 -685 0 -686 -310 0 -310 0 -3 686 -2 686 -588 -3 c-535 -3 -590 -5 -619 -20 -41 -23 -51 -53 -26 -80 10 -11 101 -61 203 -111 171 -83 190 -95 255 -161 114 -115 145 -203 145 -409 0 -322 -95 -472 -355 -558 l-70 -24 -893 -5 -892 -5 0 262 0 262 683 4 c598 3 689 5 737 20 74 22 104 46 108 86 5 46 -47 91 -187 165 -339 179 -441 311 -441 571 0 167 39 274 139 378 60 64 111 97 194 129 119 46 118 46 1495 47 l1302 1 0 -275z m1680 0 l0 -275 -470 0 -471 0 3 -102 3 -103 343 0 342 0 0 -197 0 -198 -345 0 -345 0 0 -105 0 -105 475 0 475 0 0 -282 0 -283 -777 2 -778 3 -3 960 -2 960 775 0 775 0 0 -275z m1390 261 c282 -52 471 -234 526 -506 32 -159 4 -378 -64 -505 -42 -78 -145 -177 -231 -219 -140 -71 -188 -78 -531 -84 l-305 -4 0 -174 0 -174 813 0 813 0 -3 -120 -3 -120 -1123 -3 -1122 -2 0 963 0 962 578 0 c443 -1 594 -4 652 -14z m-6467 -2158 c84 -372 213 -906 218 -900 6 6 220 757 250 875 l11 47 281 -2 281 -3 48 -205 c120 -517 171 -713 179 -697 8 13 110 422 198 792 l26 110 307 3 c245 2 307 0 303 -10 -2 -7 -27 -92 -54 -188 -27 -96 -142 -499 -256 -895 -113 -396 -212 -742 -220 -770 l-14 -50 -294 3 -294 3 -45 177 c-95 373 -171 652 -178 652 -6 0 -59 -176 -181 -608 l-63 -222 -310 2 -310 3 -78 300 c-43 165 -108 415 -144 555 -36 140 -74 287 -84 325 -10 39 -48 187 -85 330 -37 143 -75 290 -85 328 l-19 67 304 0 303 0 5 -22z m3507 -755 c123 -428 246 -858 275 -956 l52 -177 -293 0 c-162 0 -297 0 -301 0 -5 0 -26 58 -47 130 l-39 130 -316 0 -316 0 -40 -130 -40 -131 -318 -2 c-184 -1 -317 2 -317 7 0 5 58 199 129 430 71 232 171 556 221 721 111 363 207 678 221 723 l11 32 447 0 448 0 223 -777z m1742 745 c245 -67 392 -206 443 -419 19 -83 19 -257 0 -351 -42 -199 -157 -325 -368 -403 l-48 -18 73 -74 72 -73 457 0 c265 0 479 4 510 10 72 14 103 38 107 83 4 44 -15 59 -178 147 -205 111 -283 178 -340 290 -38 77 -52 145 -52 258 -1 281 151 480 417 547 121 30 209 35 673 35 l472 0 0 -259 0 -260 -417 -3 c-455 -4 -476 -6 -517 -61 -34 -45 -9 -66 210 -172 182 -89 200 -100 267 -168 83 -82 120 -148 142 -252 45 -215 -12 -442 -145 -575 -67 -67 -150 -111 -264 -140 -76 -19 -111 -20 -855 -20 l-776 1 -205 220 c-113 121 -237 255 -277 297 l-72 77 -1 -300 0 -300 -305 0 -305 0 0 958 0 958 593 -3 592 -4 97 -26z"/>
+          <path d="M6755 3711 l0 -171 211 0 c245 0 298 10 336 63 32 45 33 162 2 204 -48 64 -66 68 -319 71 l-230 3 0 -170z"/>
+          <path d="M3623 1330 l-90 -290 188 0 c104 0 189 4 189 8 0 22 -179 567 -187 569 -5 2 -50 -127 -100 -287z"/>
+          <path d="M5480 1566 l0 -178 208 4 c182 4 213 7 253 25 36 16 51 30 68 65 51 107 7 220 -98 247 -20 5 -125 11 -234 13 l-197 3 0 -179z"/>
+        </g>
+      </svg>
+      <p class="cta__tagline">May the steps be with you</p>
+      <div class="cta__buttons">
+        <a href="/register" class="btn btn--primary">Join the Order</a>
+        <a href="/login" class="btn btn--secondary">Jedi Login</a>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <a href="#features" class="scroll-indicator" aria-label="Scroll to features">
+        <span class="scroll-indicator__text">Discover</span>
+        <svg class="scroll-indicator__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 10l5 5 5-5"/>
+        </svg>
+      </a>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+      <h2 class="features__title">Your Path to Jedi Master</h2>
+      <div class="features__grid">
+        <div class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <h3 class="feature__title">Challenges</h3>
+          <p class="feature__text">Create epic step battles and rally your rebel alliance for weekly competitions.</p>
+        </div>
+
+        <div class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <h3 class="feature__title">Leaderboards</h3>
+          <p class="feature__text">Rise through the galactic ranks on your journey from Padawan to Jedi Master.</p>
+        </div>
+
+        <div class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <h3 class="feature__title">Daily Goals</h3>
+          <p class="feature__text">Set personal training targets and feel the Force grow stronger each day.</p>
+        </div>
+
+        <div class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <h3 class="feature__title">Streaks</h3>
+          <p class="feature__text">Build powerful consecutive-day streaks that showcase your dedication to the Order.</p>
+        </div>
+
+        <div class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/>
+            <line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+          <h3 class="feature__title">Invite Friends</h3>
+          <p class="feature__text">Share unique codes to recruit allies and build your rebel alliance.</p>
+        </div>
+
+        <div class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="7"/>
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+          </svg>
+          <h3 class="feature__title">Achievements</h3>
+          <p class="feature__text">Earn badges and unlock rewards as you conquer challenges across the galaxy.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p class="footer__text">May the <span>steps</span> be with you</p>
+      <p class="footer__credit">Built by <a href="https://eddmann.com" target="_blank" rel="noopener">Edd Mann</a></p>
+    </footer>
   </div>
 
   <!-- Skip Button -->
@@ -549,12 +807,25 @@
 
       calculateEndOffset();
 
-      const ctaElement = document.getElementById('cta');
+      const pageElement = document.getElementById('page');
       const skipBtn = document.getElementById('skipBtn');
 
-      function showCTA() {
-        ctaElement.classList.add('visible');
+      function showPage() {
+        pageElement.classList.add('visible');
         skipBtn.classList.add('hidden');
+        document.body.classList.add('scrollable');
+
+        // Animate features when they come into view
+        const features = document.querySelectorAll('.feature');
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        }, { threshold: 0.2 });
+
+        features.forEach(feature => observer.observe(feature));
       }
 
       // Skip button functionality
@@ -565,14 +836,25 @@
         document.querySelector('.logo-container').style.display = 'none';
         document.querySelector('.crawl-container').style.display = 'none';
 
-        // Show CTA immediately
-        showCTA();
+        // Show page immediately
+        showPage();
       });
 
-      // Detect when crawl animation ends and show CTA
+      // Detect when crawl animation ends and show page
       const crawlWrapper = document.querySelector('.crawl-wrapper');
       crawlWrapper.addEventListener('animationend', function() {
-        showCTA();
+        showPage();
+      });
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
       });
     })();
   </script>

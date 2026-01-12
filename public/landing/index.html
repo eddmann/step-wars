@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step Wars - The Step Challenge Awakens</title>
+  <meta name="description" content="Unite your friends and family in epic step challenges across the galaxy.">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=news-cycle:400,700" rel="stylesheet">
+  <style>
+    /* ========================================
+       THE ICONIC STAR WARS OPENING CRAWL
+       Recreated for Step Wars
+    ======================================== */
+
+    :root {
+      --crawl-yellow: #f5c518;
+      --intro-blue: #4bd5ee;
+      --space-black: #000000;
+      --star-white: #ffffff;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'News Cycle', 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+      background: var(--space-black);
+      color: var(--star-white);
+    }
+
+    /* ========================================
+       STARFIELD
+    ======================================== */
+    .starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      background: var(--star-white);
+      border-radius: 50%;
+    }
+
+    .star--tiny {
+      width: 1px;
+      height: 1px;
+      opacity: 0.5;
+    }
+
+    .star--small {
+      width: 1.5px;
+      height: 1.5px;
+      opacity: 0.6;
+    }
+
+    .star--medium {
+      width: 2px;
+      height: 2px;
+      opacity: 0.8;
+    }
+
+    .star--bright {
+      width: 2.5px;
+      height: 2.5px;
+      opacity: 1;
+      box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .star--twinkle {
+      animation: twinkle var(--twinkle-duration, 3s) ease-in-out infinite;
+      animation-delay: var(--twinkle-delay, 0s);
+    }
+
+    /* ========================================
+       INTRO TEXT: "A long time ago..."
+    ======================================== */
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: introFade 6s ease-in-out forwards;
+    }
+
+    .intro__text {
+      color: var(--intro-blue);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    @keyframes introFade {
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    /* ========================================
+       LOGO: STEP WARS
+    ======================================== */
+    .logo-container {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 400px;
+      opacity: 0;
+      animation: logoSequence 9s ease-in-out 6s forwards;
+    }
+
+    .logo {
+      color: var(--crawl-yellow);
+      width: min(90vw, 800px);
+      height: auto;
+      transform: scale(1);
+      animation: logoZoom 9s ease-in 6s forwards;
+    }
+
+    @keyframes logoSequence {
+      0% { opacity: 0; }
+      5% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    @keyframes logoZoom {
+      0% {
+        transform: scale(1);
+      }
+      20% {
+        transform: scale(1);
+      }
+      100% {
+        transform: scale(0) translateZ(-2000px);
+      }
+    }
+
+    /* ========================================
+       THE CRAWL
+    ======================================== */
+    .crawl-container {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      justify-content: center;
+      perspective: 600px;
+      overflow: hidden;
+      opacity: 0;
+      animation: crawlFadeIn 2s ease-out 14s forwards;
+    }
+
+    @keyframes crawlFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .crawl-wrapper {
+      position: absolute;
+      top: 100%;
+      width: 95%;
+      left: 2.5%;
+      transform: rotateX(20deg);
+      transform-origin: 50% 100%;
+      animation: crawlScroll 90s linear 14s forwards;
+    }
+
+    @keyframes crawlScroll {
+      from {
+        top: 100%;
+      }
+      to {
+        top: -300%;
+      }
+    }
+
+    .crawl {
+      text-align: justify;
+      color: var(--crawl-yellow);
+      font-size: 5vw;
+      font-weight: 700;
+      line-height: 1.4;
+      letter-spacing: 0.01em;
+    }
+
+    .crawl__episode {
+      text-align: center;
+      font-size: 3vw;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      margin-bottom: 0.5em;
+      text-transform: uppercase;
+    }
+
+    .crawl__title {
+      text-align: center;
+      font-size: 12vw;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5em;
+      line-height: 0.95;
+    }
+
+    .crawl p {
+      margin-bottom: 1.5em;
+    }
+
+    /* Gradient fade at top */
+    .crawl-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(to bottom,
+        var(--space-black) 0%,
+        rgba(0, 0, 0, 0.8) 40%,
+        transparent 100%
+      );
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* ========================================
+       CTA SECTION (appears after crawl)
+    ======================================== */
+    .cta {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    .cta.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cta__logo {
+      width: min(70vw, 400px);
+      height: auto;
+      color: var(--crawl-yellow);
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 30px rgba(245, 197, 24, 0.3));
+      animation: ctaLogoPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes ctaLogoPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(245, 197, 24, 0.3));
+      }
+      50% {
+        filter: drop-shadow(0 0 40px rgba(245, 197, 24, 0.5));
+      }
+    }
+
+    .cta__tagline {
+      font-size: clamp(0.875rem, 2vw, 1.125rem);
+      color: var(--intro-blue);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .cta__buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 2.5rem;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn--primary {
+      background: var(--crawl-yellow);
+      color: var(--space-black);
+      border: 2px solid var(--crawl-yellow);
+    }
+
+    .btn--primary:hover {
+      background: transparent;
+      color: var(--crawl-yellow);
+      box-shadow: 0 0 30px rgba(245, 197, 24, 0.4);
+    }
+
+    .btn--secondary {
+      background: transparent;
+      color: var(--star-white);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .btn--secondary:hover {
+      border-color: var(--star-white);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Skip button */
+    .skip-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 100;
+      padding: 0.75rem 1.5rem;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .skip-btn:hover {
+      color: var(--star-white);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .skip-btn.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ========================================
+       REDUCED MOTION
+    ======================================== */
+    @media (prefers-reduced-motion: reduce) {
+      .intro,
+      .logo-container,
+      .logo,
+      .crawl-wrapper,
+      .crawl-container,
+      .star--twinkle {
+        animation: none;
+      }
+
+      .intro { opacity: 0; }
+      .logo-container { opacity: 0; }
+      .cta { opacity: 1; pointer-events: auto; }
+    }
+
+    /* ========================================
+       RESPONSIVE
+    ======================================== */
+    @media (max-width: 600px) {
+      .btn {
+        padding: 0.875rem 1.75rem;
+        font-size: 0.875rem;
+      }
+
+      .skip-btn {
+        bottom: 1rem;
+        right: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Starfield Background -->
+  <div class="starfield" id="starfield"></div>
+
+  <!-- Intro: "A long time ago..." -->
+  <div class="intro">
+    <p class="intro__text">
+      A long time ago in a galaxy far,<br>far away....
+    </p>
+  </div>
+
+  <!-- Logo -->
+  <div class="logo-container">
+    <svg class="logo" viewBox="0 0 863 464" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(0,464) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+        <path d="M1607 4570 c-428 -51 -704 -400 -667 -845 16 -191 105 -364 250 -484 l61 -51 -600 0 -601 0 0 -453 0 -453 59 -229 c64 -253 299 -1165 417 -1620 41 -159 80 -305 85 -322 l11 -33 1438 0 1439 0 26 88 c15 48 34 111 43 140 l16 52 152 0 153 0 10 -37 c6 -21 24 -83 39 -138 l29 -100 851 -3 852 -2 0 156 c0 86 4 154 9 152 5 -2 70 -72 146 -156 l137 -153 841 3 c834 3 843 4 922 26 228 63 393 197 490 397 65 136 79 203 80 385 0 118 -4 170 -18 219 -39 142 -93 242 -181 334 l-46 47 269 0 270 0 0 705 1 705 -477 0 -478 1 71 37 c134 72 212 141 283 251 141 220 172 553 77 833 -46 136 -86 198 -201 313 -115 115 -175 154 -318 204 l-102 36 -2885 1 c-1587 1 -2916 -2 -2953 -6z m2683 -475 l0 -275 -282 0 -283 0 0 -685 0 -686 -310 0 -310 0 -3 686 -2 686 -588 -3 c-535 -3 -590 -5 -619 -20 -41 -23 -51 -53 -26 -80 10 -11 101 -61 203 -111 171 -83 190 -95 255 -161 114 -115 145 -203 145 -409 0 -322 -95 -472 -355 -558 l-70 -24 -893 -5 -892 -5 0 262 0 262 683 4 c598 3 689 5 737 20 74 22 104 46 108 86 5 46 -47 91 -187 165 -339 179 -441 311 -441 571 0 167 39 274 139 378 60 64 111 97 194 129 119 46 118 46 1495 47 l1302 1 0 -275z m1680 0 l0 -275 -470 0 -471 0 3 -102 3 -103 343 0 342 0 0 -197 0 -198 -345 0 -345 0 0 -105 0 -105 475 0 475 0 0 -282 0 -283 -777 2 -778 3 -3 960 -2 960 775 0 775 0 0 -275z m1390 261 c282 -52 471 -234 526 -506 32 -159 4 -378 -64 -505 -42 -78 -145 -177 -231 -219 -140 -71 -188 -78 -531 -84 l-305 -4 0 -174 0 -174 813 0 813 0 -3 -120 -3 -120 -1123 -3 -1122 -2 0 963 0 962 578 0 c443 -1 594 -4 652 -14z m-6467 -2158 c84 -372 213 -906 218 -900 6 6 220 757 250 875 l11 47 281 -2 281 -3 48 -205 c120 -517 171 -713 179 -697 8 13 110 422 198 792 l26 110 307 3 c245 2 307 0 303 -10 -2 -7 -27 -92 -54 -188 -27 -96 -142 -499 -256 -895 -113 -396 -212 -742 -220 -770 l-14 -50 -294 3 -294 3 -45 177 c-95 373 -171 652 -178 652 -6 0 -59 -176 -181 -608 l-63 -222 -310 2 -310 3 -78 300 c-43 165 -108 415 -144 555 -36 140 -74 287 -84 325 -10 39 -48 187 -85 330 -37 143 -75 290 -85 328 l-19 67 304 0 303 0 5 -22z m3507 -755 c123 -428 246 -858 275 -956 l52 -177 -293 0 c-162 0 -297 0 -301 0 -5 0 -26 58 -47 130 l-39 130 -316 0 -316 0 -40 -130 -40 -131 -318 -2 c-184 -1 -317 2 -317 7 0 5 58 199 129 430 71 232 171 556 221 721 111 363 207 678 221 723 l11 32 447 0 448 0 223 -777z m1742 745 c245 -67 392 -206 443 -419 19 -83 19 -257 0 -351 -42 -199 -157 -325 -368 -403 l-48 -18 73 -74 72 -73 457 0 c265 0 479 4 510 10 72 14 103 38 107 83 4 44 -15 59 -178 147 -205 111 -283 178 -340 290 -38 77 -52 145 -52 258 -1 281 151 480 417 547 121 30 209 35 673 35 l472 0 0 -259 0 -260 -417 -3 c-455 -4 -476 -6 -517 -61 -34 -45 -9 -66 210 -172 182 -89 200 -100 267 -168 83 -82 120 -148 142 -252 45 -215 -12 -442 -145 -575 -67 -67 -150 -111 -264 -140 -76 -19 -111 -20 -855 -20 l-776 1 -205 220 c-113 121 -237 255 -277 297 l-72 77 -1 -300 0 -300 -305 0 -305 0 0 958 0 958 593 -3 592 -4 97 -26z"/>
+        <path d="M6755 3711 l0 -171 211 0 c245 0 298 10 336 63 32 45 33 162 2 204 -48 64 -66 68 -319 71 l-230 3 0 -170z"/>
+        <path d="M3623 1330 l-90 -290 188 0 c104 0 189 4 189 8 0 22 -179 567 -187 569 -5 2 -50 -127 -100 -287z"/>
+        <path d="M5480 1566 l0 -178 208 4 c182 4 213 7 253 25 36 16 51 30 68 65 51 107 7 220 -98 247 -20 5 -125 11 -234 13 l-197 3 0 -179z"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- The Crawl -->
+  <div class="crawl-container">
+    <div class="crawl-wrapper">
+      <div class="crawl">
+        <p class="crawl__episode">Episode I</p>
+        <h1 class="crawl__title">THE STEP<br>CHALLENGE<br>AWAKENS</h1>
+
+        <p>
+          It is a period of widespread inactivity. The dark side of the couch has spread across the galaxy, threatening the health and vitality of beings everywhere.
+        </p>
+
+        <p>
+          But a rebel alliance has formed. Friends and families across the stars have united to fight back against the sedentary empire, armed with nothing but their determination and their step trackers.
+        </p>
+
+        <p>
+          STEP WARS emerges as the beacon of hope. A platform where Padawans and Jedi Masters alike can create epic challenges, track their daily victories, and compete for glory on the galactic leaderboards.
+        </p>
+
+        <p>
+          Each step is a strike against the darkness. Each challenge conquered brings balance to the Force. The path to becoming a true fitness Jedi begins with a single step....
+        </p>
+
+        <p>
+          Join the Order. Create your challenge. Rally your rebel alliance with unique invitation codes. Set personal goals for daily and weekly training. Build powerful streaks that showcase your dedication.
+        </p>
+
+        <p>
+          The galaxy watches. The leaderboards await. Your journey to step mastery begins now.
+        </p>
+
+        <p>
+          May the steps be with you....
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section (appears after crawl) -->
+  <div class="cta" id="cta">
+    <svg class="cta__logo" viewBox="0 0 863 464" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(0,464) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+        <path d="M1607 4570 c-428 -51 -704 -400 -667 -845 16 -191 105 -364 250 -484 l61 -51 -600 0 -601 0 0 -453 0 -453 59 -229 c64 -253 299 -1165 417 -1620 41 -159 80 -305 85 -322 l11 -33 1438 0 1439 0 26 88 c15 48 34 111 43 140 l16 52 152 0 153 0 10 -37 c6 -21 24 -83 39 -138 l29 -100 851 -3 852 -2 0 156 c0 86 4 154 9 152 5 -2 70 -72 146 -156 l137 -153 841 3 c834 3 843 4 922 26 228 63 393 197 490 397 65 136 79 203 80 385 0 118 -4 170 -18 219 -39 142 -93 242 -181 334 l-46 47 269 0 270 0 0 705 1 705 -477 0 -478 1 71 37 c134 72 212 141 283 251 141 220 172 553 77 833 -46 136 -86 198 -201 313 -115 115 -175 154 -318 204 l-102 36 -2885 1 c-1587 1 -2916 -2 -2953 -6z m2683 -475 l0 -275 -282 0 -283 0 0 -685 0 -686 -310 0 -310 0 -3 686 -2 686 -588 -3 c-535 -3 -590 -5 -619 -20 -41 -23 -51 -53 -26 -80 10 -11 101 -61 203 -111 171 -83 190 -95 255 -161 114 -115 145 -203 145 -409 0 -322 -95 -472 -355 -558 l-70 -24 -893 -5 -892 -5 0 262 0 262 683 4 c598 3 689 5 737 20 74 22 104 46 108 86 5 46 -47 91 -187 165 -339 179 -441 311 -441 571 0 167 39 274 139 378 60 64 111 97 194 129 119 46 118 46 1495 47 l1302 1 0 -275z m1680 0 l0 -275 -470 0 -471 0 3 -102 3 -103 343 0 342 0 0 -197 0 -198 -345 0 -345 0 0 -105 0 -105 475 0 475 0 0 -282 0 -283 -777 2 -778 3 -3 960 -2 960 775 0 775 0 0 -275z m1390 261 c282 -52 471 -234 526 -506 32 -159 4 -378 -64 -505 -42 -78 -145 -177 -231 -219 -140 -71 -188 -78 -531 -84 l-305 -4 0 -174 0 -174 813 0 813 0 -3 -120 -3 -120 -1123 -3 -1122 -2 0 963 0 962 578 0 c443 -1 594 -4 652 -14z m-6467 -2158 c84 -372 213 -906 218 -900 6 6 220 757 250 875 l11 47 281 -2 281 -3 48 -205 c120 -517 171 -713 179 -697 8 13 110 422 198 792 l26 110 307 3 c245 2 307 0 303 -10 -2 -7 -27 -92 -54 -188 -27 -96 -142 -499 -256 -895 -113 -396 -212 -742 -220 -770 l-14 -50 -294 3 -294 3 -45 177 c-95 373 -171 652 -178 652 -6 0 -59 -176 -181 -608 l-63 -222 -310 2 -310 3 -78 300 c-43 165 -108 415 -144 555 -36 140 -74 287 -84 325 -10 39 -48 187 -85 330 -37 143 -75 290 -85 328 l-19 67 304 0 303 0 5 -22z m3507 -755 c123 -428 246 -858 275 -956 l52 -177 -293 0 c-162 0 -297 0 -301 0 -5 0 -26 58 -47 130 l-39 130 -316 0 -316 0 -40 -130 -40 -131 -318 -2 c-184 -1 -317 2 -317 7 0 5 58 199 129 430 71 232 171 556 221 721 111 363 207 678 221 723 l11 32 447 0 448 0 223 -777z m1742 745 c245 -67 392 -206 443 -419 19 -83 19 -257 0 -351 -42 -199 -157 -325 -368 -403 l-48 -18 73 -74 72 -73 457 0 c265 0 479 4 510 10 72 14 103 38 107 83 4 44 -15 59 -178 147 -205 111 -283 178 -340 290 -38 77 -52 145 -52 258 -1 281 151 480 417 547 121 30 209 35 673 35 l472 0 0 -259 0 -260 -417 -3 c-455 -4 -476 -6 -517 -61 -34 -45 -9 -66 210 -172 182 -89 200 -100 267 -168 83 -82 120 -148 142 -252 45 -215 -12 -442 -145 -575 -67 -67 -150 -111 -264 -140 -76 -19 -111 -20 -855 -20 l-776 1 -205 220 c-113 121 -237 255 -277 297 l-72 77 -1 -300 0 -300 -305 0 -305 0 0 958 0 958 593 -3 592 -4 97 -26z"/>
+        <path d="M6755 3711 l0 -171 211 0 c245 0 298 10 336 63 32 45 33 162 2 204 -48 64 -66 68 -319 71 l-230 3 0 -170z"/>
+        <path d="M3623 1330 l-90 -290 188 0 c104 0 189 4 189 8 0 22 -179 567 -187 569 -5 2 -50 -127 -100 -287z"/>
+        <path d="M5480 1566 l0 -178 208 4 c182 4 213 7 253 25 36 16 51 30 68 65 51 107 7 220 -98 247 -20 5 -125 11 -234 13 l-197 3 0 -179z"/>
+      </g>
+    </svg>
+    <p class="cta__tagline">May the steps be with you</p>
+    <div class="cta__buttons">
+      <a href="/register" class="btn btn--primary">Join the Order</a>
+      <a href="/login" class="btn btn--secondary">Jedi Login</a>
+    </div>
+  </div>
+
+  <!-- Skip Button -->
+  <button class="skip-btn" id="skipBtn">Skip Intro</button>
+
+  <script>
+    (function() {
+      // Generate starfield
+      const starfield = document.getElementById('starfield');
+      const starCount = 200;
+
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+
+        // Random position
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+
+        // Random size class
+        const rand = Math.random();
+        if (rand < 0.4) {
+          star.classList.add('star--tiny');
+        } else if (rand < 0.7) {
+          star.classList.add('star--small');
+        } else if (rand < 0.9) {
+          star.classList.add('star--medium');
+        } else {
+          star.classList.add('star--bright');
+        }
+
+        // Some stars twinkle
+        if (Math.random() > 0.6) {
+          star.classList.add('star--twinkle');
+          star.style.setProperty('--twinkle-duration', (2 + Math.random() * 4) + 's');
+          star.style.setProperty('--twinkle-delay', (Math.random() * 3) + 's');
+        }
+
+        starfield.appendChild(star);
+      }
+
+      // Show CTA after crawl ends (approximately 80 seconds for full crawl)
+      // But we'll show it earlier, around 60 seconds when most content has scrolled
+      const ctaElement = document.getElementById('cta');
+      const skipBtn = document.getElementById('skipBtn');
+
+      function showCTA() {
+        ctaElement.classList.add('visible');
+        skipBtn.classList.add('hidden');
+      }
+
+      // Auto-show CTA after 70 seconds
+      const autoShowTimer = setTimeout(showCTA, 70000);
+
+      // Skip button functionality
+      skipBtn.addEventListener('click', function() {
+        clearTimeout(autoShowTimer);
+
+        // Hide all intro elements
+        document.querySelector('.intro').style.display = 'none';
+        document.querySelector('.logo-container').style.display = 'none';
+        document.querySelector('.crawl-container').style.display = 'none';
+
+        // Show CTA immediately
+        showCTA();
+      });
+
+      // Detect when crawl animation ends and show CTA
+      const crawlWrapper = document.querySelector('.crawl-wrapper');
+      crawlWrapper.addEventListener('animationend', function() {
+        showCTA();
+      });
+    })();
+  </script>
+</body>
+</html>

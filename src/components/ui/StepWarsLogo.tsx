@@ -1,13 +1,15 @@
 interface StepWarsLogoProps {
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function StepWarsLogo({ className = "w-12 h-12" }: StepWarsLogoProps) {
+export function StepWarsLogo({ className = "w-12 h-12", style }: StepWarsLogoProps) {
   return (
     <svg
       viewBox="0 0 863 464"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      style={style}
       fill="currentColor"
     >
       <g transform="translate(0,464) scale(0.1,-0.1)" stroke="none">

@@ -30,6 +30,12 @@
   --color-silver: #c0c0c0;
   --color-bronze: #cd7f32;
 
+  /* Step Wars Branding */
+  --color-logo-bg: var(--color-surface);
+  --color-logo-text: #1c1c1e;
+  --color-logo-border: rgba(0, 0, 0, 0.12);
+  --color-logo-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -63,6 +69,12 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Step Wars Branding - Dark Mode */
+  --color-logo-bg: #000000;
+  --color-logo-text: #f5c518;
+  --color-logo-border: rgba(255, 255, 255, 0.08);
+  --color-logo-shadow: 0 4px 16px rgba(245, 197, 24, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* ========================================

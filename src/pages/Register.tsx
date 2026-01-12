@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router";
 import { Card, Button, Input, StepWarsLogo, Eye, EyeOff } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import { register, clearError } from "../store/slices/authSlice";
-import { cn } from "../lib/utils";
 
 export default function Register() {
   const dispatch = useAppDispatch();
@@ -52,13 +51,15 @@ export default function Register() {
       <div className="max-w-sm mx-auto w-full animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className={cn(
-            "w-20 h-20 rounded-[var(--radius-xl)]",
-            "bg-black",
-            "flex items-center justify-center mx-auto mb-4",
-            "shadow-lg shadow-black/30"
-          )}>
-            <StepWarsLogo className="w-16 h-16 text-[#f5c518]" />
+          <div
+            className="w-20 h-20 rounded-[var(--radius-xl)] flex items-center justify-center mx-auto mb-4"
+            style={{
+              backgroundColor: 'var(--color-logo-bg)',
+              border: '1px solid var(--color-logo-border)',
+              boxShadow: 'var(--color-logo-shadow)'
+            }}
+          >
+            <StepWarsLogo className="w-16 h-16" style={{ color: 'var(--color-logo-text)' }} />
           </div>
           <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
             Join Step Wars

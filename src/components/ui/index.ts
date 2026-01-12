@@ -10,4 +10,5 @@ export { TabBar, FloatingActionButton } from "./TabBar";
 export { Podium, LeaderboardRow } from "./Podium";
 export { ToastProvider, useToast } from "./Toast";
 export { TransitionLink, useTransitionNavigate } from "./TransitionLink";
+export { StepWarsLogo } from "./StepWarsLogo";
 export * from "./Icons";

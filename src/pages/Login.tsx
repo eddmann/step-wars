@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import { Card, Button, Input, Footprints, Eye, EyeOff } from "../components/ui";
+import { Card, Button, Input, StepWarsLogo, Eye, EyeOff } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import { login, clearError } from "../store/slices/authSlice";
 import { cn } from "../lib/utils";
@@ -36,11 +36,11 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className={cn(
             "w-20 h-20 rounded-[var(--radius-xl)]",
-            "bg-gradient-to-br from-[var(--color-success)] to-emerald-600",
+            "bg-black",
             "flex items-center justify-center mx-auto mb-4",
-            "shadow-lg shadow-[var(--color-success)]/30"
+            "shadow-lg shadow-black/30"
           )}>
-            <Footprints className="w-10 h-10 text-white" />
+            <StepWarsLogo className="w-16 h-16 text-[#f5c518]" />
           </div>
           <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
             Step Wars

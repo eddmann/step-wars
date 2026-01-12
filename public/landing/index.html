@@ -18,6 +18,11 @@
       --intro-blue: #4bd5ee;
       --space-black: #000000;
       --star-white: #ffffff;
+
+      /* Fixed crawl timing */
+      --crawl-duration: 30s;
+      --crawl-delay: 14s;
+      --crawl-end-offset: -300%;
     }
 
     *, *::before, *::after {
@@ -172,7 +177,7 @@
       perspective: 600px;
       overflow: hidden;
       opacity: 0;
-      animation: crawlFadeIn 2s ease-out 14s forwards;
+      animation: crawlFadeIn 2s ease-out var(--crawl-delay) forwards;
     }
 
     @keyframes crawlFadeIn {
@@ -187,7 +192,7 @@
       left: 2.5%;
       transform: rotateX(20deg);
       transform-origin: 50% 100%;
-      animation: crawlScroll 90s linear 14s forwards;
+      animation: crawlScroll var(--crawl-duration) linear var(--crawl-delay) forwards;
     }
 
     @keyframes crawlScroll {
@@ -195,7 +200,7 @@
         top: 100%;
       }
       to {
-        top: -300%;
+        top: var(--crawl-end-offset);
       }
     }
 
@@ -524,8 +529,25 @@
         starfield.appendChild(star);
       }
 
-      // Show CTA after crawl ends (approximately 80 seconds for full crawl)
-      // But we'll show it earlier, around 60 seconds when most content has scrolled
+      // Fixed crawl duration - speed adjusts to screen size
+      const crawlDuration = 30;
+
+      // Calculate end offset so crawl finishes exactly when content goes off screen
+      function calculateEndOffset() {
+        const crawlContent = document.querySelector('.crawl');
+        const viewportHeight = window.innerHeight;
+        const contentHeight = crawlContent.offsetHeight;
+
+        // End position: content bottom should be at viewport top
+        // top + contentHeight = 0, so top = -contentHeight
+        // As percentage of viewport: -(contentHeight / viewportHeight * 100)%
+        const endOffsetPercent = -(contentHeight / viewportHeight * 100);
+
+        document.documentElement.style.setProperty('--crawl-end-offset', endOffsetPercent + '%');
+      }
+
+      calculateEndOffset();
+
       const ctaElement = document.getElementById('cta');
       const skipBtn = document.getElementById('skipBtn');
 
@@ -534,12 +556,8 @@
         skipBtn.classList.add('hidden');
       }
 
-      // Auto-show CTA after 70 seconds
-      const autoShowTimer = setTimeout(showCTA, 70000);
-
       // Skip button functionality
       skipBtn.addEventListener('click', function() {
-        clearTimeout(autoShowTimer);
 
         // Hide all intro elements
         document.querySelector('.intro').style.display = 'none';

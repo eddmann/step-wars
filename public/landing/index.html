@@ -114,7 +114,7 @@
 
     .intro__text {
       color: var(--intro-blue);
-      font-size: clamp(1rem, 4.5vw, 3.5rem);
+      font-size: clamp(1.5rem, 7vw, 6rem);
       font-weight: 400;
       letter-spacing: 0.02em;
       text-align: center;
@@ -140,6 +140,7 @@
       align-items: center;
       justify-content: center;
       perspective: 400px;
+      overflow: hidden;
       opacity: 0;
       animation: logoSequence 9s ease-in-out 6s forwards;
     }
@@ -148,7 +149,7 @@
       color: var(--crawl-yellow);
       width: min(90vw, 800px);
       height: auto;
-      transform: scale(1);
+      transform: scale(3);
       animation: logoZoom 9s ease-in 6s forwards;
     }
 
@@ -161,10 +162,7 @@
 
     @keyframes logoZoom {
       0% {
-        transform: scale(1);
-      }
-      20% {
-        transform: scale(1);
+        transform: scale(3);
       }
       100% {
         transform: scale(0) translateZ(-2000px);

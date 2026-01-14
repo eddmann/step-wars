@@ -193,7 +193,7 @@
 
     .crawl-wrapper {
       position: absolute;
-      top: 100%;
+      top: var(--crawl-start-offset, 100%);
       width: 95%;
       left: 2.5%;
       transform: rotateX(20deg);
@@ -203,7 +203,7 @@
 
     @keyframes crawlScroll {
       from {
-        top: 100%;
+        top: var(--crawl-start-offset, 100%);
       }
       to {
         top: var(--crawl-end-offset);
@@ -791,20 +791,38 @@
       // Fixed crawl duration - speed adjusts to screen size
       const crawlDuration = 30;
 
-      // Calculate end offset so crawl finishes exactly when content goes off screen
+      // Calculate start offset so crawl begins fully off-screen
+      // accounting for the perspective transform
+      function calculateStartOffset() {
+        const crawlContent = document.querySelector('.crawl');
+        const viewportHeight = window.innerHeight;
+        const contentHeight = crawlContent.offsetHeight;
+        const rotationDeg = 20; // matches CSS rotateX value
+        const rotationRad = rotationDeg * Math.PI / 180;
+
+        // The perspective transform makes the top of the content
+        // appear higher. The displacement is proportional to how
+        // far the top is from the transform-origin (bottom).
+        const perspectiveOffset = Math.tan(rotationRad) * contentHeight;
+        const startOffsetPercent = 100 + (perspectiveOffset / viewportHeight * 100);
+
+        document.documentElement.style.setProperty('--crawl-start-offset', startOffsetPercent + '%');
+      }
+
+      // Calculate end offset so crawl finishes fully off screen
       function calculateEndOffset() {
         const crawlContent = document.querySelector('.crawl');
         const viewportHeight = window.innerHeight;
         const contentHeight = crawlContent.offsetHeight;
 
-        // End position: content bottom should be at viewport top
-        // top + contentHeight = 0, so top = -contentHeight
-        // As percentage of viewport: -(contentHeight / viewportHeight * 100)%
-        const endOffsetPercent = -(contentHeight / viewportHeight * 100);
+        // End position: content bottom should be above viewport top
+        // Add 20% buffer to account for perspective making bottom appear higher
+        const endOffsetPercent = -(contentHeight / viewportHeight * 100) - 20;
 
         document.documentElement.style.setProperty('--crawl-end-offset', endOffsetPercent + '%');
       }
 
+      calculateStartOffset();
       calculateEndOffset();
 
       const pageElement = document.getElementById('page');

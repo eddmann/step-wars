@@ -11,6 +11,7 @@ interface ChallengesState {
   challenges: (Challenge & { participant_count: number })[];
   currentChallenge: ChallengeWithParticipants | null;
   leaderboard: LeaderboardEntry[];
+  lastFinalizedDate: string | null;
   isLoading: boolean;
   isSubmitting: boolean;
   error: string | null;
@@ -20,6 +21,7 @@ const initialState: ChallengesState = {
   challenges: [],
   currentChallenge: null,
   leaderboard: [],
+  lastFinalizedDate: null,
   isLoading: false,
   isSubmitting: false,
   error: null,
@@ -160,6 +162,7 @@ const challengesSlice = createSlice({
     // Fetch leaderboard
     builder.addCase(fetchLeaderboard.fulfilled, (state, action) => {
       state.leaderboard = action.payload.leaderboard;
+      state.lastFinalizedDate = action.payload.last_finalized_date || null;
     });
   },
 });

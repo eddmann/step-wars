@@ -10,6 +10,7 @@ import challenges from "./routes/challenges";
 import goals from "./routes/goals";
 import profile from "./routes/profile";
 import { handleLeaderboard } from "./routes/leaderboard";
+import { handleDailyBreakdown } from "./routes/dailyBreakdown";
 import test from "./routes/test";
 import { handleScheduled } from "./scheduled";
 
@@ -61,6 +62,7 @@ app.route("/api/__test__", test);
 // Leaderboard route (must be registered before authMiddleware applies to /api/*)
 // because we need to register it with auth middleware explicitly
 app.get("/api/challenges/:id/leaderboard", authMiddleware, handleLeaderboard);
+app.get("/api/challenges/:id/daily-breakdown", authMiddleware, handleDailyBreakdown);
 
 // Protected API routes (require authentication)
 app.use("/api/*", authMiddleware);

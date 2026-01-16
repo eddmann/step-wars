@@ -1,9 +1,11 @@
-import { useEffect } from "react";
-import { useParams } from "react-router";
+import { useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router";
 import { PageContainer, PageHeader, LoadingPage } from "../components/layout/AppShell";
 import {
   Card,
   CardHeader,
+  CardGroup,
+  CardRow,
   Button,
   Badge,
   Podium,
@@ -12,6 +14,7 @@ import {
   Users,
   Copy,
   Share2,
+  ChevronRight,
   TransitionLink,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
@@ -19,15 +22,47 @@ import { fetchChallenge, fetchLeaderboard } from "../store/slices/challengesSlic
 import { useToast } from "../components/ui/Toast";
 import { formatDate, copyToClipboard } from "../lib/utils";
 
+// Format a date as "Yesterday" or "Mon, Jan 13"
+function formatLastFinalizedLabel(dateStr: string | null): string {
+  if (!dateStr) return "";
+
+  const date = new Date(dateStr + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const dateOnly = new Date(date);
+  dateOnly.setHours(0, 0, 0, 0);
+
+  if (dateOnly.getTime() === yesterday.getTime()) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { showToast } = useToast();
-  const { currentChallenge, leaderboard, isLoading } = useAppSelector(
+  const { currentChallenge, leaderboard, lastFinalizedDate, isLoading } = useAppSelector(
     (state) => state.challenges
   );
 
   const challengeId = parseInt(id!, 10);
+
+  // Memoize the date label to avoid recalculating on every render
+  const lastFinalizedLabel = useMemo(
+    () => formatLastFinalizedLabel(lastFinalizedDate),
+    [lastFinalizedDate]
+  );
 
   useEffect(() => {
     if (challengeId) {
@@ -179,8 +214,8 @@ export default function ChallengeDetail() {
                 }
                 valueLabel={currentChallenge.mode === "daily_winner" ? "points" : "steps"}
                 isCurrentUser={entry.is_current_user}
-                todayValue={entry.today_steps}
-                hasPendingSteps={entry.has_pending_steps}
+                lastFinalizedSteps={entry.last_finalized_steps}
+                lastFinalizedLabel={lastFinalizedLabel}
               />
             ))}
           </div>
@@ -191,9 +226,22 @@ export default function ChallengeDetail() {
         )}
       </Card>
 
+      {/* Daily Breakdown Link */}
+      <CardGroup className="mb-6 animate-slide-up stagger-4">
+        <CardRow onClick={() => navigate(`/challenges/${challengeId}/daily-breakdown`)}>
+          <div className="flex items-center gap-3">
+            <Calendar className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+            <span className="text-[var(--color-text-primary)]">
+              View Daily Breakdown
+            </span>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+        </CardRow>
+      </CardGroup>
+
       {/* Link to Dashboard for logging steps */}
       {currentChallenge.status === "active" && (
-        <TransitionLink to="/" className="block animate-slide-up stagger-4">
+        <TransitionLink to="/" className="block animate-slide-up stagger-5">
           <Button fullWidth variant="secondary">
             Log Steps from Dashboard
           </Button>

@@ -4,6 +4,16 @@ import { getChallengeById, isParticipant, getChallengeLeaderboard } from "../db/
 import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 import { getDateTimeInTimezone, getYesterdayInTimezone } from "../../shared/dateUtils";
 
+// Get the last finalized date (the day before the edit cutoff)
+function getLastFinalizedDate(editCutoffDate: string): string {
+  const d = new Date(editCutoffDate + "T00:00:00");
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 // Calculate the edit cutoff date - entries on or after this date are still editable
 // If it's before noon, yesterday is still editable, so cutoff is yesterday
 // If it's noon or after, only today is editable, so cutoff is today
@@ -47,6 +57,24 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
     editCutoffDate
   );
 
+  // Get the last finalized date and fetch steps for that date
+  const lastFinalizedDate = getLastFinalizedDate(editCutoffDate);
+
+  // Query last finalized day steps for all participants
+  const lastFinalizedStepsResult = await c.env.DB.prepare(
+    `SELECT cp.user_id, COALESCE(se.step_count, 0) as steps
+     FROM challenge_participants cp
+     LEFT JOIN step_entries se ON se.user_id = cp.user_id AND se.date = ?
+     WHERE cp.challenge_id = ?`
+  )
+    .bind(lastFinalizedDate, challengeId)
+    .all<{ user_id: number; steps: number }>();
+
+  const lastFinalizedStepsMap = new Map<number, number>();
+  for (const row of lastFinalizedStepsResult.results) {
+    lastFinalizedStepsMap.set(row.user_id, row.steps);
+  }
+
   // Sort by the appropriate metric based on challenge mode
   const sortedLeaderboard = [...rawLeaderboard].sort((a, b) => {
     if (challenge.mode === "daily_winner") {
@@ -73,11 +101,9 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
         ? entry.confirmed_steps + entry.pending_steps
         : entry.confirmed_steps,
       total_points: entry.total_points,
-      // Only show today's steps to the user themselves
-      today_steps: isCurrentUser ? entry.today_steps : null,
       is_current_user: isCurrentUser,
-      // Let the frontend know there are hidden pending steps
-      has_pending_steps: !isCurrentUser && entry.pending_steps > 0,
+      // Last finalized day steps (visible to all)
+      last_finalized_steps: lastFinalizedStepsMap.get(entry.user_id) || 0,
     };
   });
 
@@ -86,8 +112,9 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
       challenge_id: challengeId,
       mode: challenge.mode,
       leaderboard,
-      // Include cutoff info so frontend can display appropriately
+      // Include date info so frontend can display appropriately
       edit_cutoff_date: editCutoffDate,
+      last_finalized_date: lastFinalizedDate,
     },
   });
 }

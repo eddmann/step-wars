@@ -65,9 +65,23 @@ export interface LeaderboardEntry {
   name: string;
   total_steps: number;
   total_points: number; // For daily_winner mode
-  today_steps: number | null; // null for other users (hidden during edit window)
   is_current_user: boolean;
-  has_pending_steps?: boolean; // true if user has steps in the edit window (not visible to others)
+  last_finalized_steps: number; // Steps from the last finalized day (visible to all)
+}
+
+// Daily Breakdown
+export interface DayRanking {
+  rank: number;
+  user_id: number;
+  name: string;
+  steps: number;
+  points: number;
+}
+
+export interface DaySummary {
+  date: string;
+  status: "finalized" | "pending";
+  rankings: DayRanking[];
 }
 
 // Goals

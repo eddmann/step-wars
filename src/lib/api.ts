@@ -11,6 +11,7 @@ import type {
   LoginForm,
   RegisterForm,
   CreateChallengeForm,
+  DaySummary,
 } from "../types";
 
 const API_BASE = "/api";
@@ -117,9 +118,22 @@ export async function getLeaderboard(challengeId: number): Promise<
     challenge_id: number;
     mode: string;
     leaderboard: LeaderboardEntry[];
+    last_finalized_date: string;
   }>
 > {
   return fetchApi(`/challenges/${challengeId}/leaderboard`);
+}
+
+// Daily Breakdown (for all challenge modes)
+export async function getDailyBreakdown(challengeId: number): Promise<
+  ApiResponse<{
+    challenge_id: number;
+    challenge_title: string;
+    mode: string;
+    days: DaySummary[];
+  }>
+> {
+  return fetchApi(`/challenges/${challengeId}/daily-breakdown`);
 }
 
 // Steps (global step entry)

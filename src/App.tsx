@@ -5,6 +5,7 @@ import { AppShell, AuthGuard } from "./components/layout/AppShell";
 import Dashboard from "./pages/Dashboard";
 import Challenges from "./pages/Challenges";
 import ChallengeDetail from "./pages/ChallengeDetail";
+import DailyBreakdown from "./pages/DailyBreakdown";
 import Goals from "./pages/Goals";
 import Profile from "./pages/Profile";
 import StepHistory from "./pages/StepHistory";
@@ -28,6 +29,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/challenges" element={<Challenges />} />
                 <Route path="/challenges/:id" element={<ChallengeDetail />} />
+                <Route path="/challenges/:id/daily-breakdown" element={<DailyBreakdown />} />
                 <Route path="/goals" element={<Goals />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/history" element={<StepHistory />} />

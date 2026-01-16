@@ -155,7 +155,9 @@ export default function DailyBreakdown() {
 
                         {/* Steps */}
                         <span className="text-[15px] text-[var(--color-text-secondary)] tabular-nums">
-                          {entry.steps.toLocaleString()} steps
+                          {entry.steps != null
+                            ? `${entry.steps.toLocaleString()} steps`
+                            : "—"}
                         </span>
 
                         {/* Points (only if finalized and earned) */}

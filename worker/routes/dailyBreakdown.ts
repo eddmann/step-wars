@@ -8,8 +8,9 @@ interface DayRanking {
   rank: number;
   user_id: number;
   name: string;
-  steps: number;
+  steps: number | null; // null for other users on pending days
   points: number;
+  is_current_user: boolean;
 }
 
 interface DaySummary {
@@ -130,13 +131,19 @@ export async function handleDailyBreakdown(c: Context<AppBindings>) {
     }
 
     // Build rankings
-    const rankings: DayRanking[] = stepsResult.results.map((row, index) => ({
-      rank: index + 1,
-      user_id: row.user_id,
-      name: row.name,
-      steps: row.steps || 0,
-      points: pointsMap.get(row.user_id) || 0,
-    }));
+    // For pending days, hide other users' steps (only show current user's)
+    const rankings: DayRanking[] = stepsResult.results.map((row, index) => {
+      const isCurrentUser = row.user_id === user.id;
+      const showSteps = status === "finalized" || isCurrentUser;
+      return {
+        rank: index + 1,
+        user_id: row.user_id,
+        name: row.name,
+        steps: showSteps ? (row.steps || 0) : null,
+        points: pointsMap.get(row.user_id) || 0,
+        is_current_user: isCurrentUser,
+      };
+    });
 
     days.push({
       date,

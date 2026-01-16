@@ -74,8 +74,9 @@ export interface DayRanking {
   rank: number;
   user_id: number;
   name: string;
-  steps: number;
+  steps: number | null; // null for other users on pending days
   points: number;
+  is_current_user: boolean;
 }
 
 export interface DaySummary {

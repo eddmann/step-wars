@@ -152,8 +152,9 @@ interface LeaderboardRowProps {
   valueLabel?: string;
   src?: string;
   isCurrentUser?: boolean;
-  lastFinalizedSteps?: number; // Steps from the last finalized day
+  lastFinalizedSteps?: number | null; // Steps from the last finalized day (null if none yet)
   lastFinalizedLabel?: string; // e.g., "Yesterday" or "Mon, Jan 13"
+  challengeStatus?: "pending" | "active" | "completed"; // For showing "Pending" on active challenges with no finalized days
   onClick?: () => void;
 }
 
@@ -166,6 +167,7 @@ export function LeaderboardRow({
   isCurrentUser,
   lastFinalizedSteps,
   lastFinalizedLabel,
+  challengeStatus,
   onClick,
 }: LeaderboardRowProps) {
   const isTopThree = rank <= 3;
@@ -205,12 +207,16 @@ export function LeaderboardRow({
         >
           {isCurrentUser ? "You" : name}
         </p>
-        {/* Show last finalized day's steps */}
-        {lastFinalizedSteps != null && lastFinalizedLabel && (
+        {/* Show last finalized day's steps, "Pending" for active challenges with no finalized days, or nothing for completed */}
+        {lastFinalizedSteps != null && lastFinalizedLabel ? (
           <p className="text-[12px] text-[var(--color-text-tertiary)]">
             {lastFinalizedLabel}: {lastFinalizedSteps.toLocaleString()}
           </p>
-        )}
+        ) : challengeStatus === "active" ? (
+          <p className="text-[12px] text-[var(--color-text-tertiary)]">
+            Pending
+          </p>
+        ) : null}
       </div>
 
       {/* Value */}

@@ -57,22 +57,37 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
     editCutoffDate
   );
 
-  // Get the last finalized date and fetch steps for that date
-  const lastFinalizedDate = getLastFinalizedDate(editCutoffDate);
+  // Determine the last finalized date, respecting challenge boundaries
+  // For completed challenges: no last finalized date (show total instead)
+  // For active challenges: only if the date falls within the challenge window
+  const rawLastFinalizedDate = getLastFinalizedDate(editCutoffDate);
 
-  // Query last finalized day steps for all participants
-  const lastFinalizedStepsResult = await c.env.DB.prepare(
-    `SELECT cp.user_id, COALESCE(se.step_count, 0) as steps
-     FROM challenge_participants cp
-     LEFT JOIN step_entries se ON se.user_id = cp.user_id AND se.date = ?
-     WHERE cp.challenge_id = ?`
-  )
-    .bind(lastFinalizedDate, challengeId)
-    .all<{ user_id: number; steps: number }>();
+  let lastFinalizedDate: string | null = null;
+  if (challenge.status !== "completed") {
+    // Only show last finalized date if it's within the challenge window
+    if (
+      rawLastFinalizedDate >= challenge.start_date &&
+      rawLastFinalizedDate <= challenge.end_date
+    ) {
+      lastFinalizedDate = rawLastFinalizedDate;
+    }
+  }
 
+  // Query last finalized day steps only if we have a valid date
   const lastFinalizedStepsMap = new Map<number, number>();
-  for (const row of lastFinalizedStepsResult.results) {
-    lastFinalizedStepsMap.set(row.user_id, row.steps);
+  if (lastFinalizedDate) {
+    const lastFinalizedStepsResult = await c.env.DB.prepare(
+      `SELECT cp.user_id, COALESCE(se.step_count, 0) as steps
+       FROM challenge_participants cp
+       LEFT JOIN step_entries se ON se.user_id = cp.user_id AND se.date = ?
+       WHERE cp.challenge_id = ?`
+    )
+      .bind(lastFinalizedDate, challengeId)
+      .all<{ user_id: number; steps: number }>();
+
+    for (const row of lastFinalizedStepsResult.results) {
+      lastFinalizedStepsMap.set(row.user_id, row.steps);
+    }
   }
 
   // Sort by the appropriate metric based on challenge mode
@@ -102,8 +117,10 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
         : entry.confirmed_steps,
       total_points: entry.total_points,
       is_current_user: isCurrentUser,
-      // Last finalized day steps (visible to all)
-      last_finalized_steps: lastFinalizedStepsMap.get(entry.user_id) || 0,
+      // Last finalized day steps (visible to all, null if no finalized date)
+      last_finalized_steps: lastFinalizedDate
+        ? (lastFinalizedStepsMap.get(entry.user_id) ?? 0)
+        : null,
     };
   });
 
@@ -111,6 +128,7 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
     data: {
       challenge_id: challengeId,
       mode: challenge.mode,
+      status: challenge.status,
       leaderboard,
       // Include date info so frontend can display appropriately
       edit_cutoff_date: editCutoffDate,

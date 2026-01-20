@@ -216,6 +216,7 @@ export default function ChallengeDetail() {
                 isCurrentUser={entry.is_current_user}
                 lastFinalizedSteps={entry.last_finalized_steps}
                 lastFinalizedLabel={lastFinalizedLabel}
+                challengeStatus={currentChallenge.status}
               />
             ))}
           </div>

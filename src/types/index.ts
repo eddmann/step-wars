@@ -66,7 +66,7 @@ export interface LeaderboardEntry {
   total_steps: number;
   total_points: number; // For daily_winner mode
   is_current_user: boolean;
-  last_finalized_steps: number; // Steps from the last finalized day (visible to all)
+  last_finalized_steps: number | null; // Steps from the last finalized day (null if no finalized day yet or challenge completed)
 }
 
 // Daily Breakdown

@@ -92,7 +92,7 @@ export default function DailyBreakdown() {
       ) : (
         <div className="space-y-4">
           {days.map((day, index) => {
-            const { label: dateLabel, isToday } = formatDayDate(day.date);
+            const { label: dateLabel, isToday, isYesterday } = formatDayDate(day.date);
             const isPending = day.status === "pending";
 
             return (
@@ -122,7 +122,7 @@ export default function DailyBreakdown() {
 
                 {isPending && isDailyWinner && (
                   <p className="text-[13px] text-[var(--color-text-tertiary)] mb-4">
-                    Points will be awarded at noon tomorrow
+                    Points will be awarded at noon {isYesterday ? "today" : "tomorrow"}
                   </p>
                 )}
 

@@ -174,7 +174,7 @@ async function calculateDailyPointsForDate(
 
       // Award daily_winner badge to 1st place
       if (i === 0) {
-        await awardBadge(env, entry.user_id, "daily_winner", challengeId);
+        await awardBadge(env, entry.user_id, "daily_winner");
       }
     }
   }
@@ -248,7 +248,7 @@ async function forceFinalize(env: AppBindings["Bindings"], challenge: Challenge)
 
   // Award challenge_winner badge
   if (winner) {
-    await awardBadge(env, winner.user_id, "challenge_winner", challenge.id);
+    await awardBadge(env, winner.user_id, "challenge_winner");
   }
 
   // If this is a recurring challenge, create the next one

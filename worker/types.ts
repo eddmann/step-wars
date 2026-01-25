@@ -82,7 +82,6 @@ export interface UserBadge {
   id: number;
   user_id: number;
   badge_type: string;
-  challenge_id: number | null;
   earned_at: string;
 }
 

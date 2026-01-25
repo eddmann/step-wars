@@ -77,7 +77,7 @@ async function calculateDailyPointsForChallenge(
 
       // Award daily_winner badge to 1st place
       if (i === 0) {
-        const badge = await awardBadge(env, entry.user_id, "daily_winner", challengeId);
+        const badge = await awardBadge(env, entry.user_id, "daily_winner");
         if (badge) {
           // Create notification for daily winner
           await createNotification(
@@ -170,7 +170,7 @@ async function finalizeChallenge(env: Env, challenge: Challenge): Promise<void> 
 
   // Award challenge_winner badge
   if (winner) {
-    const badge = await awardBadge(env, winner.user_id, "challenge_winner", challenge.id);
+    const badge = await awardBadge(env, winner.user_id, "challenge_winner");
     if (badge) {
       const scoreLabel = challenge.mode === "cumulative" ? "steps" : "points";
       await createNotification(

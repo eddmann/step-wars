@@ -419,16 +419,15 @@ export async function getUserBadges(env: Env, userId: number): Promise<UserBadge
 export async function awardBadge(
   env: Env,
   userId: number,
-  badgeType: string,
-  challengeId: number | null = null
+  badgeType: string
 ): Promise<UserBadge | null> {
   try {
     const result = await env.DB.prepare(
-      `INSERT INTO user_badges (user_id, badge_type, challenge_id)
-       VALUES (?, ?, ?)
+      `INSERT INTO user_badges (user_id, badge_type)
+       VALUES (?, ?)
        RETURNING *`
     )
-      .bind(userId, badgeType, challengeId)
+      .bind(userId, badgeType)
       .first<UserBadge>();
     return result;
   } catch {

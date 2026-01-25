@@ -197,8 +197,8 @@ describe("Full Journey", () => {
     const profileJson = await profileResponse.json();
 
     // Alice should have badges from winning:
-    // - 1 daily_winner badge from the daily_winner challenge (unique per challenge)
-    // - 2 challenge_winner badges (one from each challenge)
+    // - 1 daily_winner badge (global, not per challenge)
+    // - 1 challenge_winner badge (global, not per challenge)
     const badges = profileJson.data.badges || [];
 
     const dailyWinnerBadges = badges.filter(
@@ -208,10 +208,10 @@ describe("Full Journey", () => {
       (b: { badge_type: string }) => b.badge_type === "challenge_winner"
     );
 
-    // Alice won at least one day in the daily_winner challenge (1 badge per challenge)
-    expect(dailyWinnerBadges.length).toBeGreaterThanOrEqual(1);
-    // Alice won both challenges (2 challenge winner badges)
-    expect(challengeWinnerBadges.length).toBeGreaterThanOrEqual(2);
+    // Alice won at least one day - earns global daily_winner badge
+    expect(dailyWinnerBadges.length).toBe(1);
+    // Alice won at least one challenge - earns global challenge_winner badge
+    expect(challengeWinnerBadges.length).toBe(1);
   });
 });
 
@@ -317,23 +317,21 @@ describe("Cumulative Mode Journey", () => {
     expect(leaderboard[1].name).toBe("Charlie");
     expect(leaderboard[1].total_steps).toBe(32000);
 
-    // Verify Diana got the challenge_winner badge
+    // Verify Diana got the challenge_winner badge (global, not per-challenge)
     const dianaProfile = await apiRequest("GET", "/profile", diana.token);
     expect(dianaProfile.ok).toBe(true);
     const dianaJson = await dianaProfile.json();
     const dianaBadges = dianaJson.data.badges || [];
 
     const challengeWinnerBadge = dianaBadges.find(
-      (b: { badge_type: string; challenge_id: number }) =>
-        b.badge_type === "challenge_winner" && b.challenge_id === challengeId
+      (b: { badge_type: string }) => b.badge_type === "challenge_winner"
     );
     expect(challengeWinnerBadge).toBeDefined();
 
     // Verify cumulative mode doesn't award daily_winner badges
     // (no daily points calculation for cumulative challenges)
     const dailyWinnerBadges = dianaBadges.filter(
-      (b: { badge_type: string; challenge_id: number }) =>
-        b.badge_type === "daily_winner" && b.challenge_id === challengeId
+      (b: { badge_type: string }) => b.badge_type === "daily_winner"
     );
     expect(dailyWinnerBadges.length).toBe(0);
   });

@@ -16,9 +16,17 @@ export function formatNumber(num: number): string {
 
 /**
  * Format a date string for display
+ * Handles both YYYY-MM-DD and YYYY-MM-DD HH:MM:SS (SQLite datetime) formats
  */
 export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
+  let date: Date;
+  if (dateStr.includes(" ") || dateStr.includes("T")) {
+    // Full timestamp (SQLite datetime or ISO format)
+    date = new Date(dateStr.replace(" ", "T"));
+  } else {
+    // Date-only string (YYYY-MM-DD)
+    date = new Date(dateStr + "T00:00:00");
+  }
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",

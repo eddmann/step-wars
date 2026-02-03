@@ -3,7 +3,9 @@ import { EDIT_DEADLINE_HOUR } from "@shared/constants";
 /**
  * Utility for merging class names
  */
-export function cn(...classes: (string | boolean | undefined | null)[]): string {
+export function cn(
+  ...classes: (string | boolean | undefined | null)[]
+): string {
   return classes.filter(Boolean).join(" ");
 }
 
@@ -65,11 +67,11 @@ function getBrowserTimezone(): string {
  * Get today's date in YYYY-MM-DD format (timezone-aware)
  */
 export function getToday(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: getBrowserTimezone(),
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
   return formatter.format(new Date());
 }
@@ -80,11 +82,11 @@ export function getToday(): string {
 export function getYesterday(): string {
   const date = new Date();
   date.setDate(date.getDate() - 1);
-  const formatter = new Intl.DateTimeFormat('en-CA', {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: getBrowserTimezone(),
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
   return formatter.format(date);
 }
@@ -93,10 +95,10 @@ export function getYesterday(): string {
  * Get current hour in browser's timezone (0-23)
  */
 function getCurrentHour(): number {
-  const formatter = new Intl.DateTimeFormat('en-US', {
+  const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: getBrowserTimezone(),
-    hour: 'numeric',
-    hour12: false
+    hour: "numeric",
+    hour12: false,
   });
   return parseInt(formatter.format(new Date()), 10);
 }

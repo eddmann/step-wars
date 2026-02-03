@@ -36,18 +36,25 @@ export const fetchProfile = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 export const updateProfile = createAsyncThunk(
   "profile/update",
-  async ({ name, email, timezone }: { name: string; email: string; timezone?: string }, { rejectWithValue }) => {
+  async (
+    {
+      name,
+      email,
+      timezone,
+    }: { name: string; email: string; timezone?: string },
+    { rejectWithValue },
+  ) => {
     const response = await api.updateProfile(name, email, timezone);
     if (response.error) {
       return rejectWithValue(response.error);
     }
     return response.data!.user;
-  }
+  },
 );
 
 const profileSlice = createSlice({

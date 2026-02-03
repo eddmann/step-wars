@@ -67,11 +67,21 @@ export function PageHeader({
                 "hover:bg-[var(--color-surface-secondary)]",
                 "rounded-[var(--radius-md)]",
                 "transition-colors duration-200",
-                "press-effect"
+                "press-effect",
               )}
             >
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-6 h-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
           )}
@@ -95,7 +105,10 @@ export function PageHeader({
 // Loading page placeholder
 export function LoadingPage() {
   return (
-    <div className="min-h-dvh flex items-center justify-center">
+    <div
+      className="min-h-dvh flex items-center justify-center"
+      data-testid="loading-spinner"
+    >
       <Spinner size="lg" className="text-[var(--color-accent)]" />
     </div>
   );
@@ -109,7 +122,9 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, token } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, token } = useAppSelector(
+    (state) => state.auth,
+  );
 
   useEffect(() => {
     if (token && !isAuthenticated && !isLoading) {
@@ -142,7 +157,12 @@ interface EmptyStateProps {
   action?: ReactNode;
 }
 
-export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+}: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {icon && (

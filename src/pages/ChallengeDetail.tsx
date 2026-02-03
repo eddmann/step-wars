@@ -1,6 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
-import { PageContainer, PageHeader, LoadingPage } from "../components/layout/AppShell";
+import {
+  PageContainer,
+  PageHeader,
+  LoadingPage,
+} from "../components/layout/AppShell";
 import {
   Card,
   CardHeader,
@@ -18,7 +22,10 @@ import {
   TransitionLink,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
-import { fetchChallenge, fetchLeaderboard } from "../store/slices/challengesSlice";
+import {
+  fetchChallenge,
+  fetchLeaderboard,
+} from "../store/slices/challengesSlice";
 import { useToast } from "../components/ui/Toast";
 import { formatDate, copyToClipboard } from "../lib/utils";
 
@@ -52,16 +59,15 @@ export default function ChallengeDetail() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { currentChallenge, leaderboard, lastFinalizedDate, isLoading } = useAppSelector(
-    (state) => state.challenges
-  );
+  const { currentChallenge, leaderboard, lastFinalizedDate, isLoading } =
+    useAppSelector((state) => state.challenges);
 
   const challengeId = parseInt(id!, 10);
 
   // Memoize the date label to avoid recalculating on every render
   const lastFinalizedLabel = useMemo(
     () => formatLastFinalizedLabel(lastFinalizedDate),
-    [lastFinalizedDate]
+    [lastFinalizedDate],
   );
 
   useEffect(() => {
@@ -108,7 +114,12 @@ export default function ChallengeDetail() {
         subtitle={currentChallenge.description || undefined}
         backButton
         action={
-          <Button variant="ghost" size="sm" onClick={handleShare}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            aria-label="Share challenge"
+          >
             <Share2 className="w-5 h-5" />
           </Button>
         }
@@ -118,11 +129,25 @@ export default function ChallengeDetail() {
       <Card className="mb-6 animate-slide-up stagger-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Badge variant={currentChallenge.status === "active" ? "success" : currentChallenge.status === "pending" ? "warning" : "default"}>
-              {currentChallenge.status === "active" ? "Active" : currentChallenge.status === "pending" ? "Upcoming" : "Completed"}
+            <Badge
+              variant={
+                currentChallenge.status === "active"
+                  ? "success"
+                  : currentChallenge.status === "pending"
+                    ? "warning"
+                    : "default"
+              }
+            >
+              {currentChallenge.status === "active"
+                ? "Active"
+                : currentChallenge.status === "pending"
+                  ? "Upcoming"
+                  : "Completed"}
             </Badge>
             <Badge variant="info">
-              {currentChallenge.mode === "daily_winner" ? "Daily Winner" : "Cumulative"}
+              {currentChallenge.mode === "daily_winner"
+                ? "Daily Winner"
+                : "Cumulative"}
             </Badge>
           </div>
         </div>
@@ -130,7 +155,8 @@ export default function ChallengeDetail() {
         <div className="flex items-center gap-6 mt-4 text-[14px] text-[var(--color-text-secondary)]">
           <span className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />
-            {formatDate(currentChallenge.start_date)} - {formatDate(currentChallenge.end_date)}
+            {formatDate(currentChallenge.start_date)} -{" "}
+            {formatDate(currentChallenge.end_date)}
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="w-4 h-4" />
@@ -147,7 +173,12 @@ export default function ChallengeDetail() {
             <span className="text-[17px] font-mono font-bold tracking-widest text-[var(--color-text-primary)]">
               {currentChallenge.invite_code}
             </span>
-            <Button variant="ghost" size="sm" onClick={handleCopyInviteCode}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyInviteCode}
+              aria-label="Copy invite code"
+            >
               <Copy className="w-4 h-4" />
             </Button>
           </div>
@@ -195,7 +226,9 @@ export default function ChallengeDetail() {
           <CardHeader
             title="Leaderboard"
             subtitle={
-              currentChallenge.mode === "daily_winner" ? "Points awarded daily" : "Total steps"
+              currentChallenge.mode === "daily_winner"
+                ? "Points awarded daily"
+                : "Total steps"
             }
           />
         </div>
@@ -212,7 +245,9 @@ export default function ChallengeDetail() {
                     ? entry.total_points
                     : entry.total_steps
                 }
-                valueLabel={currentChallenge.mode === "daily_winner" ? "points" : "steps"}
+                valueLabel={
+                  currentChallenge.mode === "daily_winner" ? "points" : "steps"
+                }
                 isCurrentUser={entry.is_current_user}
                 lastFinalizedSteps={entry.last_finalized_steps}
                 lastFinalizedLabel={lastFinalizedLabel}
@@ -229,7 +264,9 @@ export default function ChallengeDetail() {
 
       {/* Daily Breakdown Link */}
       <CardGroup className="mb-6 animate-slide-up stagger-4">
-        <CardRow onClick={() => navigate(`/challenges/${challengeId}/daily-breakdown`)}>
+        <CardRow
+          onClick={() => navigate(`/challenges/${challengeId}/daily-breakdown`)}
+        >
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-[var(--color-text-tertiary)]" />
             <span className="text-[var(--color-text-primary)]">

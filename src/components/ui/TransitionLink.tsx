@@ -17,11 +17,11 @@ export const TransitionLink = forwardRef<HTMLAnchorElement, LinkProps>(
         }
         onClick?.(e);
       },
-      [onClick]
+      [onClick],
     );
 
     return <Link ref={ref} viewTransition onClick={handleClick} {...props} />;
-  }
+  },
 );
 
 TransitionLink.displayName = "TransitionLink";
@@ -42,7 +42,11 @@ export function useTransitionNavigate() {
       }
 
       // Check if View Transitions API is supported
-      const startViewTransition = (document as any).startViewTransition;
+      const startViewTransition = (
+        document as Document & {
+          startViewTransition?: (callback: () => void) => void;
+        }
+      ).startViewTransition;
 
       if (typeof startViewTransition === "function") {
         startViewTransition.call(document, () => {
@@ -63,7 +67,7 @@ export function useTransitionNavigate() {
         }
       }
     },
-    [navigate]
+    [navigate],
   );
 
   return transitionNavigate;

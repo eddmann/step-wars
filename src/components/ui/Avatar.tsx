@@ -64,18 +64,15 @@ export function Avatar({
         "relative inline-flex items-center justify-center",
         "rounded-full overflow-hidden flex-shrink-0",
         styles.container,
-        showRing && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-background)]",
-        className
+        showRing &&
+          "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-background)]",
+        className,
       )}
       style={!src ? { backgroundColor: bgColor } : undefined}
       {...props}
     >
       {src ? (
-        <img
-          src={src}
-          alt={name}
-          className="w-full h-full object-cover"
-        />
+        <img src={src} alt={name} className="w-full h-full object-cover" />
       ) : (
         <span className={cn("font-semibold text-white", styles.text)}>
           {initials}
@@ -119,7 +116,7 @@ export function AvatarGroup({ users, max = 4, size = "sm" }: AvatarGroupProps) {
             "ring-2 ring-[var(--color-surface)]",
             "font-medium",
             styles.container,
-            styles.text
+            styles.text,
           )}
         >
           +{remaining}

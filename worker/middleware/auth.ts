@@ -1,35 +1,34 @@
 import { createMiddleware } from "hono/factory";
-import type { Env, User, Session, AppBindings } from "../types";
+import type { Env, User, AppBindings } from "../types";
+import { createD1SessionRepository } from "../repositories/d1/session.d1";
+import { createD1UserRepository } from "../repositories/d1/user.d1";
+
+const BEARER_PREFIX = "Bearer ";
 
 export async function getAuthenticatedUser(
   request: Request,
-  env: Env
+  env: Env,
 ): Promise<User | null> {
   const authHeader = request.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!authHeader?.startsWith(BEARER_PREFIX)) {
     return null;
   }
 
-  const token = authHeader.slice(7);
+  const token = authHeader.slice(BEARER_PREFIX.length);
   if (!token) {
     return null;
   }
 
-  // Get session and check expiry
-  const session = await env.DB.prepare(
-    "SELECT * FROM sessions WHERE token = ? AND expires_at > datetime('now')"
-  )
-    .bind(token)
-    .first<Session>();
+  const sessionRepository = createD1SessionRepository(env);
+  const userRepository = createD1UserRepository(env);
+
+  const session = await sessionRepository.getByToken(token);
 
   if (!session) {
     return null;
   }
 
-  // Get user
-  const user = await env.DB.prepare("SELECT * FROM users WHERE id = ?")
-    .bind(session.user_id)
-    .first<User>();
+  const user = await userRepository.getById(session.user_id);
 
   return user || null;
 }
@@ -70,7 +69,7 @@ export async function hashPassword(password: string): Promise<string> {
     encoder.encode(password),
     "PBKDF2",
     false,
-    ["deriveBits"]
+    ["deriveBits"],
   );
 
   const hash = await crypto.subtle.deriveBits(
@@ -81,7 +80,7 @@ export async function hashPassword(password: string): Promise<string> {
       hash: "SHA-256",
     },
     key,
-    HASH_LENGTH
+    HASH_LENGTH,
   );
 
   return toHex(salt) + ":" + toHex(new Uint8Array(hash));
@@ -89,7 +88,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(
   password: string,
-  stored: string
+  stored: string,
 ): Promise<boolean> {
   const [saltHex, hashHex] = stored.split(":");
   if (!saltHex || !hashHex) {
@@ -104,7 +103,7 @@ export async function verifyPassword(
     encoder.encode(password),
     "PBKDF2",
     false,
-    ["deriveBits"]
+    ["deriveBits"],
   );
 
   const hash = await crypto.subtle.deriveBits(
@@ -115,7 +114,7 @@ export async function verifyPassword(
       hash: "SHA-256",
     },
     key,
-    HASH_LENGTH
+    HASH_LENGTH,
   );
 
   return toHex(new Uint8Array(hash)) === hashHex;

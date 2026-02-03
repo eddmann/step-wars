@@ -32,7 +32,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <div
@@ -40,7 +40,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         className={cn(
           "rounded-[var(--radius-lg)] overflow-hidden",
           variantStyles[variant],
-          className
+          className,
         )}
         {...props}
       >
@@ -57,7 +57,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Card.displayName = "Card";
@@ -77,7 +77,10 @@ export function CardHeader({
   ...props
 }: CardHeaderProps) {
   return (
-    <div className={cn("flex items-center justify-between", className)} {...props}>
+    <div
+      className={cn("flex items-center justify-between", className)}
+      {...props}
+    >
       <div>
         <h3 className="text-[15px] font-semibold text-[var(--color-text-primary)]">
           {title}
@@ -107,7 +110,7 @@ export function CardGroup({ children, className, ...props }: CardGroupProps) {
         "shadow-[var(--shadow-sm)]",
         "overflow-hidden",
         "divide-y divide-[var(--color-border)]",
-        className
+        className,
       )}
       {...props}
     >
@@ -122,7 +125,12 @@ interface CardRowProps extends HTMLAttributes<HTMLDivElement> {
   onClick?: () => void;
 }
 
-export function CardRow({ children, onClick, className, ...props }: CardRowProps) {
+export function CardRow({
+  children,
+  onClick,
+  className,
+  ...props
+}: CardRowProps) {
   const interactive = !!onClick;
 
   return (
@@ -130,8 +138,9 @@ export function CardRow({ children, onClick, className, ...props }: CardRowProps
       onClick={onClick}
       className={cn(
         "px-4 py-3 flex items-center justify-between",
-        interactive && "cursor-pointer press-effect hover:bg-[var(--color-surface-secondary)]",
-        className
+        interactive &&
+          "cursor-pointer press-effect hover:bg-[var(--color-surface-secondary)]",
+        className,
       )}
       {...props}
     >

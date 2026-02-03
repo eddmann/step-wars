@@ -34,21 +34,24 @@ export const fetchGoals = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 export const updateGoals = createAsyncThunk(
   "goals/update",
   async (
-    { dailyTarget, weeklyTarget }: { dailyTarget: number; weeklyTarget: number },
-    { rejectWithValue }
+    {
+      dailyTarget,
+      weeklyTarget,
+    }: { dailyTarget: number; weeklyTarget: number },
+    { rejectWithValue },
   ) => {
     const response = await api.updateGoals(dailyTarget, weeklyTarget);
     if (response.error) {
       return rejectWithValue(response.error);
     }
     return response.data!.goals;
-  }
+  },
 );
 
 export const pauseGoals = createAsyncThunk(
@@ -59,7 +62,7 @@ export const pauseGoals = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!.goals;
-  }
+  },
 );
 
 export const resumeGoals = createAsyncThunk(
@@ -70,14 +73,18 @@ export const resumeGoals = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!.goals;
-  }
+  },
 );
 
 export const submitSteps = createAsyncThunk(
   "goals/submitSteps",
   async (
-    { date, stepCount, source = "manual" }: { date: string; stepCount: number; source?: string },
-    { rejectWithValue, dispatch }
+    {
+      date,
+      stepCount,
+      source = "manual",
+    }: { date: string; stepCount: number; source?: string },
+    { rejectWithValue, dispatch },
   ) => {
     const response = await api.submitSteps(date, stepCount, source);
     if (response.error) {
@@ -86,7 +93,7 @@ export const submitSteps = createAsyncThunk(
     // Refresh goals to update todaySteps
     dispatch(fetchGoals());
     return response.data!.entry;
-  }
+  },
 );
 
 export const markNotificationsAsRead = createAsyncThunk(
@@ -97,7 +104,7 @@ export const markNotificationsAsRead = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return notificationIds;
-  }
+  },
 );
 
 const goalsSlice = createSlice({
@@ -140,11 +147,11 @@ const goalsSlice = createSlice({
       if (state.goals) {
         state.dailyProgress = Math.min(
           100,
-          Math.round((state.todaySteps / state.goals.daily_target) * 100)
+          Math.round((state.todaySteps / state.goals.daily_target) * 100),
         );
         state.weeklyProgress = Math.min(
           100,
-          Math.round((state.weeklySteps / state.goals.weekly_target) * 100)
+          Math.round((state.weeklySteps / state.goals.weekly_target) * 100),
         );
       }
     });
@@ -179,7 +186,9 @@ const goalsSlice = createSlice({
     // Mark notifications as read
     builder.addCase(markNotificationsAsRead.fulfilled, (state, action) => {
       const readIds = new Set(action.payload);
-      state.notifications = state.notifications.filter((n) => !readIds.has(n.id));
+      state.notifications = state.notifications.filter(
+        (n) => !readIds.has(n.id),
+      );
     });
   },
 });

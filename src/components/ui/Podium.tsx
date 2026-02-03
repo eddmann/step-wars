@@ -82,7 +82,7 @@ function PodiumPosition({
         <div
           className={cn(
             "w-full mt-3 rounded-t-xl bg-[var(--color-surface-secondary)]",
-            height
+            height,
           )}
         />
       </div>
@@ -98,7 +98,8 @@ function PodiumPosition({
           src={user.src}
           size="lg"
           className={cn(
-            user.isCurrentUser && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-background)]"
+            user.isCurrentUser &&
+              "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-background)]",
           )}
         />
         <div className="absolute -bottom-1 -right-1">
@@ -112,7 +113,7 @@ function PodiumPosition({
           "mt-2 text-[13px] font-semibold truncate max-w-full text-center",
           user.isCurrentUser
             ? "text-[var(--color-accent)]"
-            : "text-[var(--color-text-primary)]"
+            : "text-[var(--color-text-primary)]",
         )}
       >
         {user.isCurrentUser ? "You" : user.name.split(" ")[0]}
@@ -130,10 +131,11 @@ function PodiumPosition({
           "bg-gradient-to-b flex items-center justify-center",
           "shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]",
           podiumColors[position],
-          height
+          height,
         )}
         style={{
-          animationDelay: position === 1 ? "0ms" : position === 2 ? "100ms" : "200ms",
+          animationDelay:
+            position === 1 ? "0ms" : position === 2 ? "100ms" : "200ms",
         }}
       >
         <span className="text-[24px] font-bold text-white/90 drop-shadow-sm">
@@ -177,8 +179,9 @@ export function LeaderboardRow({
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 p-3",
-        onClick && "cursor-pointer press-effect hover:bg-[var(--color-surface-secondary)]",
-        isCurrentUser && "bg-[var(--color-accent)]/8"
+        onClick &&
+          "cursor-pointer press-effect hover:bg-[var(--color-surface-secondary)]",
+        isCurrentUser && "bg-[var(--color-accent)]/8",
       )}
     >
       {/* Rank */}
@@ -202,7 +205,7 @@ export function LeaderboardRow({
             "text-[15px] font-medium truncate",
             isCurrentUser
               ? "text-[var(--color-accent)]"
-              : "text-[var(--color-text-primary)]"
+              : "text-[var(--color-text-primary)]",
           )}
         >
           {isCurrentUser ? "You" : name}

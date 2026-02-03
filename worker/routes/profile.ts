@@ -1,36 +1,37 @@
 import { Hono } from "hono";
 import type { AppBindings } from "../types";
-import { updateUser, getUserBadges, getUserStats, getTodaySteps } from "../db/queries";
-import { getDateInTimezone } from "../../shared/dateUtils";
+import { createD1UserRepository } from "../repositories/d1/user.d1";
+import { createD1BadgeRepository } from "../repositories/d1/badge.d1";
+import { createD1StatsRepository } from "../repositories/d1/stats.d1";
+import { createD1StepEntryRepository } from "../repositories/d1/step-entry.d1";
+import { getProfile } from "../usecases/get-profile.usecase";
+import { updateProfile } from "../usecases/update-profile.usecase";
+import { getBadges } from "../usecases/get-badges.usecase";
+import { errorToHttpStatus, errorToMessage } from "../usecases/errors";
 
 const profile = new Hono<AppBindings>();
 
 // GET / - Get user profile
 profile.get("/", async (c) => {
   const user = c.get("user");
-  const badges = await getUserBadges(c.env, user.id);
-  const stats = await getUserStats(c.env, user.id);
 
-  // Get today's steps
-  const today = getDateInTimezone(user.timezone);
-  const todaySteps = await getTodaySteps(c.env, user.id, today);
+  const statsRepository = createD1StatsRepository(c.env);
+  const badgeRepository = createD1BadgeRepository(c.env);
+  const stepEntryRepository = createD1StepEntryRepository(c.env);
 
-  return c.json({
-    data: {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        timezone: user.timezone,
-        created_at: user.created_at,
-      },
-      stats: {
-        ...stats,
-        today_steps: todaySteps,
-      },
-      badges,
-    },
-  });
+  const result = await getProfile(
+    { statsRepository, badgeRepository, stepEntryRepository },
+    { user },
+  );
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: result.value });
 });
 
 // PUT / - Update user profile
@@ -44,7 +45,7 @@ profile.put("/", async (c) => {
 
   const name = body.name ?? user.name;
   const email = body.email ?? user.email;
-  const timezone = body.timezone; // Optional - only update if provided
+  const timezone = body.timezone;
 
   if (!name || name.length < 2) {
     return c.json({ error: "Name must be at least 2 characters" }, 400);
@@ -54,16 +55,27 @@ profile.put("/", async (c) => {
     return c.json({ error: "Valid email is required" }, 400);
   }
 
-  const updatedUser = await updateUser(c.env, user.id, name, email.toLowerCase(), timezone);
+  const userRepository = createD1UserRepository(c.env);
+  const result = await updateProfile(
+    { userRepository },
+    { userId: user.id, name, email: email.toLowerCase(), timezone },
+  );
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
 
   return c.json({
     data: {
       user: {
-        id: updatedUser!.id,
-        email: updatedUser!.email,
-        name: updatedUser!.name,
-        timezone: updatedUser!.timezone,
-        created_at: updatedUser!.created_at,
+        id: result.value.id,
+        email: result.value.email,
+        name: result.value.name,
+        timezone: result.value.timezone,
+        created_at: result.value.created_at,
       },
     },
   });
@@ -72,8 +84,18 @@ profile.put("/", async (c) => {
 // GET /badges - Get user badges
 profile.get("/badges", async (c) => {
   const user = c.get("user");
-  const badges = await getUserBadges(c.env, user.id);
-  return c.json({ data: { badges } });
+  const badgeRepository = createD1BadgeRepository(c.env);
+
+  const result = await getBadges({ badgeRepository }, { userId: user.id });
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: { badges: result.value } });
 });
 
 export default profile;

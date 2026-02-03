@@ -6,22 +6,24 @@
 /**
  * Get the current date in YYYY-MM-DD format for a given timezone.
  */
-export function getDateInTimezone(timezone: string): string {
+export function getDateInTimezone(timezone: string, now: Date = new Date()): string {
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
   });
-  return formatter.format(new Date());
+  return formatter.format(now);
 }
 
 /**
  * Get the current date and hour in a given timezone.
  * Returns { date: "YYYY-MM-DD", hour: 0-23 }
  */
-export function getDateTimeInTimezone(timezone: string): { date: string; hour: number } {
-  const now = new Date();
+export function getDateTimeInTimezone(
+  timezone: string,
+  now: Date = new Date()
+): { date: string; hour: number } {
   const dateFormatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
     year: 'numeric',
@@ -43,9 +45,8 @@ export function getDateTimeInTimezone(timezone: string): { date: string; hour: n
  * Get yesterday's date in YYYY-MM-DD format for a given timezone.
  * Correctly calculates "yesterday" within the target timezone.
  */
-export function getYesterdayInTimezone(timezone: string): string {
-  // Get today's date in the target timezone first
-  const today = getDateInTimezone(timezone);
+export function getYesterdayInTimezone(timezone: string, now: Date = new Date()): string {
+  const today = getDateInTimezone(timezone, now);
   // Parse and subtract 1 day
   const [year, month, day] = today.split("-").map(Number);
   const date = new Date(year, month - 1, day);

@@ -1,13 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import { Card, Button, Input, StepWarsLogo, Eye, EyeOff } from "../components/ui";
+import {
+  Card,
+  Button,
+  Input,
+  StepWarsLogo,
+  Eye,
+  EyeOff,
+} from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import { login, clearError } from "../store/slices/authSlice";
 
 export default function Login() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, error } = useAppSelector(
+    (state) => state.auth,
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,12 +45,15 @@ export default function Login() {
           <div
             className="w-20 h-20 rounded-[var(--radius-xl)] flex items-center justify-center mx-auto mb-4"
             style={{
-              backgroundColor: 'var(--color-logo-bg)',
-              border: '1px solid var(--color-logo-border)',
-              boxShadow: 'var(--color-logo-shadow)'
+              backgroundColor: "var(--color-logo-bg)",
+              border: "1px solid var(--color-logo-border)",
+              boxShadow: "var(--color-logo-shadow)",
             }}
           >
-            <StepWarsLogo className="w-16 h-16" style={{ color: 'var(--color-logo-text)' }} />
+            <StepWarsLogo
+              className="w-16 h-16"
+              style={{ color: "var(--color-logo-text)" }}
+            />
           </div>
           <h1 className="text-[28px] font-bold text-[var(--color-text-primary)]">
             Step Wars
@@ -77,6 +89,7 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="p-1"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />

@@ -34,7 +34,8 @@
   --color-logo-bg: var(--color-surface);
   --color-logo-text: #1c1c1e;
   --color-logo-border: rgba(0, 0, 0, 0.12);
-  --color-logo-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --color-logo-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -74,7 +75,8 @@
   --color-logo-bg: #000000;
   --color-logo-text: #f5c518;
   --color-logo-border: rgba(255, 255, 255, 0.08);
-  --color-logo-shadow: 0 4px 16px rgba(245, 197, 24, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --color-logo-shadow:
+    0 4px 16px rgba(245, 197, 24, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* ========================================
@@ -86,7 +88,9 @@
 }
 
 html {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -135,13 +139,21 @@ body {
 }
 
 @keyframes fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slide-out-left {
@@ -193,8 +205,12 @@ body {
    ======================================== */
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
@@ -273,11 +289,21 @@ body {
 }
 
 /* Stagger delays for lists */
-.stagger-1 { animation-delay: 30ms; }
-.stagger-2 { animation-delay: 60ms; }
-.stagger-3 { animation-delay: 90ms; }
-.stagger-4 { animation-delay: 120ms; }
-.stagger-5 { animation-delay: 150ms; }
+.stagger-1 {
+  animation-delay: 30ms;
+}
+.stagger-2 {
+  animation-delay: 60ms;
+}
+.stagger-3 {
+  animation-delay: 90ms;
+}
+.stagger-4 {
+  animation-delay: 120ms;
+}
+.stagger-5 {
+  animation-delay: 150ms;
+}
 
 /* View transition name for page content */
 .page-content {
@@ -289,7 +315,9 @@ body {
    ======================================== */
 
 .press-effect {
-  transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+  transition:
+    transform 0.15s ease-out,
+    opacity 0.15s ease-out;
 }
 
 .press-effect:active {

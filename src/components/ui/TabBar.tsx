@@ -11,7 +11,11 @@ interface TabItem {
 
 const tabs: TabItem[] = [
   { path: "/", label: "Today", icon: <Home className="w-6 h-6" /> },
-  { path: "/challenges", label: "Challenges", icon: <Trophy className="w-6 h-6" /> },
+  {
+    path: "/challenges",
+    label: "Challenges",
+    icon: <Trophy className="w-6 h-6" />,
+  },
   { path: "/goals", label: "Goals", icon: <Target className="w-6 h-6" /> },
   { path: "/profile", label: "Profile", icon: <User className="w-6 h-6" /> },
 ];
@@ -25,7 +29,7 @@ export function TabBar() {
         "fixed bottom-0 left-0 right-0 z-40",
         "bg-[var(--color-surface)]/80 backdrop-blur-xl",
         "border-t border-[var(--color-border)]",
-        "safe-bottom"
+        "safe-bottom",
       )}
     >
       <div className="flex items-center justify-around h-[49px] max-w-lg mx-auto">
@@ -45,18 +49,20 @@ export function TabBar() {
                 "transition-colors duration-200",
                 isActive
                   ? "text-[var(--color-accent)]"
-                  : "text-[var(--color-text-tertiary)]"
+                  : "text-[var(--color-text-tertiary)]",
               )}
             >
               <span
                 className={cn(
                   "transition-transform duration-200",
-                  isActive && "scale-110"
+                  isActive && "scale-110",
                 )}
               >
                 {tab.icon}
               </span>
-              <span className="text-[10px] font-medium mt-0.5">{tab.label}</span>
+              <span className="text-[10px] font-medium mt-0.5">
+                {tab.label}
+              </span>
             </NavLink>
           );
         })}
@@ -87,12 +93,22 @@ export function FloatingActionButton({ onClick, icon, label }: FABProps) {
         "hover:shadow-xl hover:shadow-[var(--color-accent)]/40",
         "transition-all duration-200",
         "press-effect",
-        "font-semibold"
+        "font-semibold",
       )}
     >
       {icon || (
-        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
       )}
       {label && <span>{label}</span>}

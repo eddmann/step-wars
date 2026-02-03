@@ -26,7 +26,7 @@ export const login = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 export const register = createAsyncThunk(
@@ -37,7 +37,7 @@ export const register = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 export const fetchCurrentUser = createAsyncThunk(
@@ -48,7 +48,7 @@ export const fetchCurrentUser = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 export const logout = createAsyncThunk("auth/logout", async () => {

@@ -46,7 +46,12 @@ export interface Participant {
 }
 
 // Step Entry (global - one entry per user per day)
-export type StepSource = "manual" | "healthkit" | "google_fit" | "garmin" | "strava";
+export type StepSource =
+  | "manual"
+  | "healthkit"
+  | "google_fit"
+  | "garmin"
+  | "strava";
 
 export interface StepEntry {
   id: number;

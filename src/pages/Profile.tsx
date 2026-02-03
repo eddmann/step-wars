@@ -32,11 +32,12 @@ import { formatNumber, formatDate, getBadgeName, cn } from "../lib/utils";
 
 type ThemeOption = "light" | "dark" | "system";
 
-const themeOptions: { value: ThemeOption; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "Auto", icon: Monitor },
-];
+const themeOptions: { value: ThemeOption; label: string; icon: typeof Sun }[] =
+  [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "Auto", icon: Monitor },
+  ];
 
 export default function Profile() {
   const dispatch = useAppDispatch();
@@ -45,7 +46,7 @@ export default function Profile() {
   const { theme, setTheme } = useTheme();
   const { user: authUser } = useAppSelector((state) => state.auth);
   const { user, stats, badges, isSubmitting } = useAppSelector(
-    (state) => state.profile
+    (state) => state.profile,
   );
 
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -61,7 +62,9 @@ export default function Profile() {
     if (user) {
       setName(user.name);
       setEmail(user.email);
-      setTimezone(user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+      setTimezone(
+        user.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      );
     }
   }, [user]);
 
@@ -76,11 +79,13 @@ export default function Profile() {
       return;
     }
 
-    const result = await dispatch(updateProfile({
-      name: name.trim(),
-      email: email.trim(),
-      timezone: timezone || undefined,
-    }));
+    const result = await dispatch(
+      updateProfile({
+        name: name.trim(),
+        email: email.trim(),
+        timezone: timezone || undefined,
+      }),
+    );
     if (updateProfile.fulfilled.match(result)) {
       setIsEditOpen(false);
       showToast("success", "Profile updated!");
@@ -189,7 +194,10 @@ export default function Profile() {
 
       {/* Badges */}
       {badges.length > 0 && (
-        <Card className="mb-6 animate-slide-up" style={{ animationDelay: "180ms" }}>
+        <Card
+          className="mb-6 animate-slide-up"
+          style={{ animationDelay: "180ms" }}
+        >
           <h3 className="text-[15px] font-semibold text-[var(--color-text-primary)] mb-4">
             Badges
           </h3>
@@ -208,7 +216,10 @@ export default function Profile() {
       )}
 
       {/* Theme Selector */}
-      <Card className="mb-6 animate-slide-up" style={{ animationDelay: "240ms" }}>
+      <Card
+        className="mb-6 animate-slide-up"
+        style={{ animationDelay: "240ms" }}
+      >
         <h3 className="text-[15px] font-semibold text-[var(--color-text-primary)] mb-3">
           Appearance
         </h3>
@@ -226,7 +237,7 @@ export default function Profile() {
                   "transition-all duration-200",
                   isActive
                     ? "bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-sm"
-                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
                 )}
               >
                 <Icon className="w-4 h-4" />
@@ -238,7 +249,10 @@ export default function Profile() {
       </Card>
 
       {/* Settings */}
-      <CardGroup className="mb-6 animate-slide-up" style={{ animationDelay: "270ms" }}>
+      <CardGroup
+        className="mb-6 animate-slide-up"
+        style={{ animationDelay: "270ms" }}
+      >
         <CardRow onClick={() => navigate("/history")}>
           <div className="flex items-center gap-3">
             <Footprints className="w-5 h-5 text-[var(--color-text-tertiary)]" />
@@ -272,7 +286,11 @@ export default function Profile() {
       </Button>
 
       {/* Edit Profile Modal */}
-      <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Profile">
+      <Modal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Edit Profile"
+      >
         <div className="space-y-4">
           <Input
             label="Name"
@@ -307,10 +325,18 @@ export default function Profile() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsEditOpen(false)}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setIsEditOpen(false)}
+            >
               Cancel
             </Button>
-            <Button fullWidth onClick={handleSaveProfile} isLoading={isSubmitting}>
+            <Button
+              fullWidth
+              onClick={handleSaveProfile}
+              isLoading={isSubmitting}
+            >
               Save
             </Button>
           </div>

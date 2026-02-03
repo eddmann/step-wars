@@ -2,110 +2,108 @@
 
 ## Project Overview
 
-Step Wars: fitness challenge app where users compete by tracking daily steps. React 19 + TypeScript frontend, Hono backend on Cloudflare Workers, D1 (SQLite) database.
+Step Wars - a fitness challenge app where users compete by tracking daily steps. React 19 (Vite) frontend and Cloudflare Workers (Hono) backend. TypeScript throughout, D1 SQLite database, Bun as runtime/test runner.
 
 ## Setup
 
 ```bash
-bun install
-bun run db:migrate:local
-bun run dev
+make start
 ```
 
-App runs at `http://localhost:5173`. Create account to test.
+App runs at `http://localhost:5173`. Create an account to test.
 
 ## Common Commands
 
-| Task | Command |
-|------|---------|
-| Dev server | `bun run dev` |
-| Build | `bun run build` |
-| Type check | `bun run typecheck` |
-| Unit tests | `bun run test` |
-| Unit tests (UI) | `bun run test:ui` |
-| E2E tests | `bun run test:e2e` |
-| E2E tests (UI) | `bun run test:e2e:ui` |
-| Migrate local DB | `bun run db:migrate:local` |
-| Migrate remote DB | `bun run db:migrate:remote` |
-| Deploy | `bun run deploy` |
-| Full deploy pipeline | `bun run ship` |
+```bash
+make start         # Install deps, migrate, run dev server
+make test          # Run all tests
+make lint          # Run all linters
+make can-release   # CI gate (lint + test)
+make ship          # Full deploy pipeline
+```
+
+Run `make` to see all available targets.
 
 ## Code Conventions
 
-**Path Aliases:**
-- `@/` → `./src/`
-- `@shared/` → `./shared/`
-
 **Directory Structure:**
-- `src/components/` - React components (layout, ui subdirs)
-- `src/pages/` - Route page components
-- `src/store/slices/` - Redux slices
-- `src/lib/` - Utilities (api.ts, utils.ts)
-- `worker/routes/` - API route handlers
-- `worker/middleware/` - Hono middleware
-- `worker/services/` - Business logic
-- `shared/` - Code shared between frontend and worker
-- `migrations/` - D1 SQL migrations (sequential 0001_, 0002_, etc.)
+- `src/` - React SPA (components, pages, lib, store)
+- `worker/` - Cloudflare Workers API (routes, usecases, repositories, services)
+- `shared/` - Types shared between client and worker
+- `migrations/` - D1 SQL migration files
 
-**API Routes:**
-- All routes in `worker/routes/*.ts`
-- Use Zod schemas with `@hono/zod-validator`
-- Parameterized queries via `.bind()` - never string interpolation
+**Architecture Pattern:**
+- Routes (`worker/routes/`) - HTTP handlers with Zod validation
+- Use-cases (`worker/usecases/`) - Business logic with injected repositories
+- Repositories (`worker/repositories/`) - Data access via interfaces (D1 impl + memory for tests)
+- Services (`worker/services/`) - Challenge lifecycle, notifications, streak
 
-**Commit Style:** Conventional Commits
-- `feat:` new features
-- `fix:` bug fixes
-- `refactor:` code restructuring
-- `chore:` dependencies, build
-- `test:` test changes
+**Naming:**
+- Test files: `*.test.ts` or `*.test.tsx`
+- D1 repository tests: `*.d1.test.ts`
+- HTTP tests: `*.http.test.ts`
+- Use-case files: `*.usecase.ts`
+- Repository interfaces: `worker/repositories/interfaces/`
+- Repository D1 impls: `worker/repositories/d1/`
+
+**TypeScript:**
+- Strict mode enabled
+- No explicit `any` (enforced by ESLint)
 
 ## Tests & CI
 
-**Unit/Integration (Vitest):**
-- Location: `tests/**/*.test.ts`
-- Run: `bun run test`
-- Uses helpers from `tests/helpers.ts`:
-  - `createTestUser()` - creates auth user, returns token
-  - `apiRequest(method, path, token, body?)` - authenticated requests
-  - `insertTestSteps()` - bypasses edit window
-  - `runCron()` - triggers scheduled job
+**Test Framework:** Bun's native test runner
 
-**E2E (Playwright):**
-- Location: `e2e/**/*.spec.ts`
-- Run: `bun run test:e2e`
-- Auto-starts dev server
-- Uses Chromium only
+**Client Testing Stack:**
+- Testing Library (`@testing-library/react`, `@testing-library/user-event`)
+- MSW v2 for API mocking (`src/test/mocks/`)
+- JSDOM for DOM environment
+- Fixtures in `src/test/fixtures.ts`
 
-**No CI configured** - manual deployment via `bun run ship` which runs:
-```
-typecheck → build → db:migrate:remote → deploy
-```
+**Worker Testing Stack:**
+- Layered: use-cases (unit) → repositories (D1 integration) → HTTP (e2e)
+- In-memory repositories for use-case tests
+- Real D1 instances for repository tests
+- Fixtures in `worker/test/fixtures/`
+
+**No CI pipeline configured.** Run `make can-release` locally before deploying.
+
+**Zero warnings policy:** ESLint runs with `--max-warnings 0`
 
 ## PR & Workflow Rules
 
-- Branch: `main` only (direct commits, no PR workflow currently)
-- Commits follow Conventional Commits format
-- No PR templates or CODEOWNERS configured
-- Deploy to Cloudflare Workers via Wrangler
+**Commit Format:** Conventional Commits
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation
+- `refactor:` - Code refactoring
+
+**Branch:** All work on `main` (no PR templates or branch naming conventions enforced)
+
+**Deploy Pipeline:**
+```bash
+make ship  # typecheck → build → db:migrate:remote → deploy
+```
 
 ## Security & Gotchas
 
 **Never commit:**
-- `.env`, `.env.local`, `.env.*.local`
-- `.dev.vars` (Cloudflare dev secrets)
+- `.env*` files
 - `.wrangler/` directory
 - `node_modules/`
+- `.dev.vars` (Cloudflare dev secrets)
 
-**Security patterns:**
-- Passwords: PBKDF2 with 100k iterations + salt
-- SQL: Always use parameterized queries with `.bind()`
-- Validation: Zod schemas on all API inputs
-- Auth: Token-based via `Authorization` header
+**Authentication:**
+- Passwords hashed with PBKDF2 (100k iterations, SHA-256)
+- Client stores token in `localStorage` under key `step_wars_token`
+
+**Input validation:** All API routes use Zod schemas via `@hono/zod-validator`
+
+**Database:** All queries use parameterized `.bind()` calls (no SQL injection)
 
 **Gotchas:**
 - Tests run sequentially (no parallelism) due to shared D1 database
 - Step edit window: until noon the next day (EDIT_DEADLINE_HOUR in shared/constants.ts)
 - Cron job runs at noon UTC daily (wrangler.json triggers)
 - Test endpoints (`/api/__test__/*`) only available when `ENVIRONMENT=development`
-- No ESLint/Prettier configured - rely on TypeScript strict mode
 - CORS is `origin: "*"` - permissive for development

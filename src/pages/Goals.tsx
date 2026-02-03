@@ -12,15 +12,26 @@ import {
   Target,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
-import { fetchGoals, updateGoals, pauseGoals, resumeGoals } from "../store/slices/goalsSlice";
+import {
+  fetchGoals,
+  updateGoals,
+  pauseGoals,
+  resumeGoals,
+} from "../store/slices/goalsSlice";
 import { useToast } from "../components/ui/Toast";
 import { formatNumber } from "../lib/utils";
 
 export default function Goals() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
-  const { goals, todaySteps, weeklySteps, dailyProgress, weeklyProgress, isSubmitting } =
-    useAppSelector((state) => state.goals);
+  const {
+    goals,
+    todaySteps,
+    weeklySteps,
+    dailyProgress,
+    weeklyProgress,
+    isSubmitting,
+  } = useAppSelector((state) => state.goals);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [dailyTarget, setDailyTarget] = useState("");
@@ -77,8 +88,16 @@ export default function Goals() {
       <Card className="mb-6 animate-slide-up stagger-1">
         <div className="flex flex-col items-center py-6">
           <DoubleRing
-            outer={{ value: todaySteps, max: goals?.daily_target || 10000, color: "green" }}
-            inner={{ value: weeklySteps, max: goals?.weekly_target || 70000, color: "blue" }}
+            outer={{
+              value: todaySteps,
+              max: goals?.daily_target || 10000,
+              color: "green",
+            }}
+            inner={{
+              value: weeklySteps,
+              max: goals?.weekly_target || 70000,
+              color: "blue",
+            }}
             size="xl"
           >
             <div className="text-center">
@@ -156,7 +175,10 @@ export default function Goals() {
 
       {/* Streak Card */}
       <Card className="mb-6 animate-slide-up stagger-4">
-        <CardHeader title="Streak" subtitle="Consecutive days meeting your goal" />
+        <CardHeader
+          title="Streak"
+          subtitle="Consecutive days meeting your goal"
+        />
         <div className="flex items-center gap-4 mt-4">
           <div className="w-14 h-14 rounded-full bg-[var(--color-warning)]/15 flex items-center justify-center">
             <Flame className="w-7 h-7 text-[var(--color-warning)]" />
@@ -166,9 +188,7 @@ export default function Goals() {
               <span className="text-[28px] font-bold tabular-nums text-[var(--color-text-primary)]">
                 {goals?.current_streak || 0}
               </span>
-              <span className="text-[var(--color-text-secondary)]">
-                days
-              </span>
+              <span className="text-[var(--color-text-secondary)]">days</span>
             </div>
             <p className="text-[14px] text-[var(--color-text-tertiary)]">
               Longest: {goals?.longest_streak || 0} days

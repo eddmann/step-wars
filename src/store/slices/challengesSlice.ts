@@ -35,7 +35,7 @@ export const fetchChallenges = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!.challenges;
-  }
+  },
 );
 
 export const fetchChallenge = createAsyncThunk(
@@ -46,7 +46,7 @@ export const fetchChallenge = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 export const createChallenge = createAsyncThunk(
@@ -57,7 +57,7 @@ export const createChallenge = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!.challenge;
-  }
+  },
 );
 
 export const joinChallenge = createAsyncThunk(
@@ -68,7 +68,7 @@ export const joinChallenge = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!.challenge;
-  }
+  },
 );
 
 export const fetchLeaderboard = createAsyncThunk(
@@ -79,7 +79,7 @@ export const fetchLeaderboard = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!;
-  }
+  },
 );
 
 const challengesSlice = createSlice({

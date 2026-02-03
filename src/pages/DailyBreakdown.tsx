@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { PageContainer, PageHeader, LoadingPage } from "../components/layout/AppShell";
+import {
+  PageContainer,
+  PageHeader,
+  LoadingPage,
+} from "../components/layout/AppShell";
 import { Card, MedalBadge, Clock, Check } from "../components/ui";
 import * as api from "../lib/api";
 import type { DaySummary } from "../types";
 
-function formatDayDate(dateStr: string): { label: string; isToday: boolean; isYesterday: boolean } {
+function formatDayDate(dateStr: string): {
+  label: string;
+  isToday: boolean;
+  isYesterday: boolean;
+} {
   const date = new Date(dateStr + "T00:00:00");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -86,13 +94,18 @@ export default function DailyBreakdown() {
       {days.length === 0 ? (
         <Card>
           <p className="text-center text-[var(--color-text-secondary)]">
-            No results yet. The challenge hasn't started or no steps have been logged.
+            No results yet. The challenge hasn't started or no steps have been
+            logged.
           </p>
         </Card>
       ) : (
         <div className="space-y-4">
           {days.map((day, index) => {
-            const { label: dateLabel, isToday, isYesterday } = formatDayDate(day.date);
+            const {
+              label: dateLabel,
+              isToday,
+              isYesterday,
+            } = formatDayDate(day.date);
             const isPending = day.status === "pending";
 
             return (
@@ -122,7 +135,8 @@ export default function DailyBreakdown() {
 
                 {isPending && isDailyWinner && (
                   <p className="text-[13px] text-[var(--color-text-tertiary)] mb-4">
-                    Points will be awarded at noon {isYesterday ? "today" : "tomorrow"}
+                    Points will be awarded at noon{" "}
+                    {isYesterday ? "today" : "tomorrow"}
                   </p>
                 )}
 
@@ -130,7 +144,8 @@ export default function DailyBreakdown() {
                 <div className="space-y-3">
                   {day.rankings.map((entry) => {
                     const isTopThree = entry.rank <= 3;
-                    const earnedPoints = isDailyWinner && !isPending && entry.points > 0;
+                    const earnedPoints =
+                      isDailyWinner && !isPending && entry.points > 0;
 
                     return (
                       <div
@@ -140,7 +155,10 @@ export default function DailyBreakdown() {
                         {/* Rank */}
                         <div className="w-8 flex justify-center">
                           {isTopThree ? (
-                            <MedalBadge position={entry.rank as 1 | 2 | 3} size="sm" />
+                            <MedalBadge
+                              position={entry.rank as 1 | 2 | 3}
+                              size="sm"
+                            />
                           ) : (
                             <span className="text-[14px] font-semibold text-[var(--color-text-tertiary)] tabular-nums">
                               {entry.rank}

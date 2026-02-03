@@ -17,7 +17,10 @@ interface RingProgressProps {
   className?: string;
 }
 
-const colorGradients: Record<RingColor, { start: string; end: string; glow: string }> = {
+const colorGradients: Record<
+  RingColor,
+  { start: string; end: string; glow: string }
+> = {
   green: {
     start: "#34C759",
     end: "#30D158",
@@ -45,7 +48,10 @@ const colorGradients: Record<RingColor, { start: string; end: string; glow: stri
   },
 };
 
-const sizeConfig: Record<RingSize, { diameter: number; stroke: number; fontSize: string }> = {
+const sizeConfig: Record<
+  RingSize,
+  { diameter: number; stroke: number; fontSize: string }
+> = {
   sm: { diameter: 60, stroke: 6, fontSize: "text-[14px]" },
   md: { diameter: 100, stroke: 8, fontSize: "text-[20px]" },
   lg: { diameter: 160, stroke: 12, fontSize: "text-[32px]" },
@@ -64,7 +70,13 @@ export function RingProgress({
   label,
   className,
 }: RingProgressProps) {
-  const [displayValue, setDisplayValue] = useState(animated ? 0 : value);
+  const isTestEnvironment =
+    (typeof process !== "undefined" && process.env?.NODE_ENV === "test") ||
+    (typeof import.meta !== "undefined" &&
+      (import.meta as ImportMeta & { env?: { MODE?: string } }).env?.MODE ===
+        "test");
+  const shouldAnimate = animated && !isTestEnvironment;
+  const [displayValue, setDisplayValue] = useState(shouldAnimate ? 0 : value);
   const config = sizeConfig[size];
   const colors = colorGradients[color];
 
@@ -75,7 +87,7 @@ export function RingProgress({
   const offset = circumference - (percentage / 100) * circumference;
 
   useEffect(() => {
-    if (!animated) {
+    if (!shouldAnimate) {
       setDisplayValue(value);
       return;
     }
@@ -83,6 +95,7 @@ export function RingProgress({
     const duration = 1200;
     const startTime = performance.now();
     const startValue = displayValue;
+    let rafId = 0;
 
     function animate(currentTime: number) {
       const elapsed = currentTime - startTime;
@@ -97,22 +110,28 @@ export function RingProgress({
       const easeOut = 1 - Math.pow(2, -10 * progress);
       const current = startValue + (value - startValue) * easeOut;
       setDisplayValue(current);
-      requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(animate);
     }
 
-    requestAnimationFrame(animate);
-  }, [value, animated]);
+    rafId = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+  }, [value, shouldAnimate]);
 
   const gradientId = `ring-gradient-${color}-${Math.random().toString(36).slice(2)}`;
 
   return (
-    <div className={cn("relative inline-flex flex-col items-center", className)}>
+    <div
+      className={cn("relative inline-flex flex-col items-center", className)}
+    >
       <svg
         width={config.diameter}
         height={config.diameter}
         className="transform -rotate-90"
         style={{
-          filter: percentage > 0 ? `drop-shadow(0 0 8px ${colors.glow})` : undefined,
+          filter:
+            percentage > 0 ? `drop-shadow(0 0 8px ${colors.glow})` : undefined,
         }}
       >
         <defs>
@@ -174,7 +193,7 @@ export function RingProgress({
             <span
               className={cn(
                 "font-bold tabular-nums text-[var(--color-text-primary)]",
-                config.fontSize
+                config.fontSize,
               )}
             >
               {Math.round(displayValue).toLocaleString()}
@@ -221,25 +240,44 @@ export function DoubleRing({
   const outerPercentage = Math.min(100, (outer.value / outer.max) * 100);
   const innerPercentage = Math.min(100, (inner.value / inner.max) * 100);
 
-  const outerOffset = outerCircumference - (outerPercentage / 100) * outerCircumference;
-  const innerOffset = innerCircumference - (innerPercentage / 100) * innerCircumference;
+  const outerOffset =
+    outerCircumference - (outerPercentage / 100) * outerCircumference;
+  const innerOffset =
+    innerCircumference - (innerPercentage / 100) * innerCircumference;
 
   const outerColors = colorGradients[outer.color || "green"];
   const innerColors = colorGradients[inner.color || "blue"];
 
   return (
-    <div className={cn("relative inline-flex items-center justify-center", className)}>
+    <div
+      className={cn(
+        "relative inline-flex items-center justify-center",
+        className,
+      )}
+    >
       <svg
         width={config.diameter}
         height={config.diameter}
         className="transform -rotate-90"
       >
         <defs>
-          <linearGradient id="outer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient
+            id="outer-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
             <stop offset="0%" stopColor={outerColors.start} />
             <stop offset="100%" stopColor={outerColors.end} />
           </linearGradient>
-          <linearGradient id="inner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient
+            id="inner-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
             <stop offset="0%" stopColor={innerColors.start} />
             <stop offset="100%" stopColor={innerColors.end} />
           </linearGradient>
@@ -268,10 +306,12 @@ export function DoubleRing({
           strokeDasharray={outerCircumference}
           strokeDashoffset={outerOffset}
           className="animate-ring-fill"
-          style={{
-            "--ring-circumference": outerCircumference,
-            "--ring-offset": outerOffset,
-          } as React.CSSProperties}
+          style={
+            {
+              "--ring-circumference": outerCircumference,
+              "--ring-offset": outerOffset,
+            } as React.CSSProperties
+          }
         />
 
         {/* Inner track */}
@@ -297,10 +337,12 @@ export function DoubleRing({
           strokeDasharray={innerCircumference}
           strokeDashoffset={innerOffset}
           className="animate-ring-fill stagger-2"
-          style={{
-            "--ring-circumference": innerCircumference,
-            "--ring-offset": innerOffset,
-          } as React.CSSProperties}
+          style={
+            {
+              "--ring-circumference": innerCircumference,
+              "--ring-offset": innerOffset,
+            } as React.CSSProperties
+          }
         />
       </svg>
 

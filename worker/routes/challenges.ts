@@ -1,22 +1,33 @@
 import { Hono } from "hono";
 import type { AppBindings } from "../types";
-import {
-  createChallenge,
-  getChallengeById,
-  getChallengeByInviteCode,
-  getUserChallenges,
-  joinChallenge,
-  isParticipant,
-  getChallengeParticipants,
-} from "../db/queries";
+import { createD1ChallengeRepository } from "../repositories/d1/challenge.d1";
+import { createD1ParticipantRepository } from "../repositories/d1/participant.d1";
+import { listUserChallenges } from "../usecases/list-user-challenges.usecase";
+import { createChallenge } from "../usecases/create-challenge.usecase";
+import { joinChallenge } from "../usecases/join-challenge.usecase";
+import { getChallenge } from "../usecases/get-challenge.usecase";
+import { errorToHttpStatus, errorToMessage } from "../usecases/errors";
 
 const challenges = new Hono<AppBindings>();
 
 // GET / - List user's challenges
 challenges.get("/", async (c) => {
   const user = c.get("user");
-  const userChallenges = await getUserChallenges(c.env, user.id);
-  return c.json({ data: { challenges: userChallenges } });
+
+  const challengeRepository = createD1ChallengeRepository(c.env);
+  const result = await listUserChallenges(
+    { challengeRepository },
+    { userId: user.id },
+  );
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: { challenges: result.value } });
 });
 
 // POST / - Create a new challenge
@@ -33,31 +44,49 @@ challenges.post("/", async (c) => {
   }>();
 
   if (!body.title || !body.start_date || !body.end_date || !body.mode) {
-    return c.json({ error: "Title, start_date, end_date, and mode are required" }, 400);
+    return c.json(
+      { error: "Title, start_date, end_date, and mode are required" },
+      400,
+    );
   }
 
   if (body.mode !== "daily_winner" && body.mode !== "cumulative") {
-    return c.json({ error: "Mode must be 'daily_winner' or 'cumulative'" }, 400);
+    return c.json(
+      { error: "Mode must be 'daily_winner' or 'cumulative'" },
+      400,
+    );
   }
 
   if (new Date(body.start_date) > new Date(body.end_date)) {
     return c.json({ error: "Start date must be before end date" }, 400);
   }
 
-  const challenge = await createChallenge(
-    c.env,
-    user.id,
-    body.title,
-    body.description || null,
-    body.start_date,
-    body.end_date,
-    body.mode,
-    user.timezone, // Use creator's timezone for the challenge
-    body.is_recurring || false,
-    body.recurring_interval || null
+  const challengeRepository = createD1ChallengeRepository(c.env);
+  const participantRepository = createD1ParticipantRepository(c.env);
+
+  const result = await createChallenge(
+    { challengeRepository, participantRepository },
+    {
+      creatorId: user.id,
+      title: body.title,
+      description: body.description || null,
+      startDate: body.start_date,
+      endDate: body.end_date,
+      mode: body.mode,
+      timezone: user.timezone,
+      isRecurring: body.is_recurring || false,
+      recurringInterval: body.recurring_interval || null,
+    },
   );
 
-  return c.json({ data: { challenge } }, 201);
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: { challenge: result.value } }, 201);
 });
 
 // POST /join - Join a challenge with invite code
@@ -69,19 +98,25 @@ challenges.post("/join", async (c) => {
     return c.json({ error: "Invite code is required" }, 400);
   }
 
-  const challenge = await getChallengeByInviteCode(c.env, body.invite_code);
-  if (!challenge) {
-    return c.json({ error: "Invalid invite code" }, 404);
+  const challengeRepository = createD1ChallengeRepository(c.env);
+  const participantRepository = createD1ParticipantRepository(c.env);
+
+  const result = await joinChallenge(
+    { challengeRepository, participantRepository },
+    { userId: user.id, inviteCode: body.invite_code },
+  );
+
+  if (!result.ok) {
+    if (result.error.code === "CONFLICT") {
+      return c.json({ error: errorToMessage(result.error) }, 400);
+    }
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
   }
 
-  const alreadyJoined = await isParticipant(c.env, challenge.id, user.id);
-  if (alreadyJoined) {
-    return c.json({ error: "Already a participant in this challenge" }, 400);
-  }
-
-  await joinChallenge(c.env, challenge.id, user.id);
-
-  return c.json({ data: { challenge } });
+  return c.json({ data: { challenge: result.value } });
 });
 
 // GET /:id - Get challenge details
@@ -89,24 +124,28 @@ challenges.get("/:id", async (c) => {
   const user = c.get("user");
   const challengeId = parseInt(c.req.param("id"), 10);
 
-  const challenge = await getChallengeById(c.env, challengeId);
-  if (!challenge) {
-    return c.json({ error: "Challenge not found" }, 404);
+  const challengeRepository = createD1ChallengeRepository(c.env);
+  const participantRepository = createD1ParticipantRepository(c.env);
+
+  const result = await getChallenge(
+    { challengeRepository, participantRepository },
+    { userId: user.id, challengeId },
+  );
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
   }
 
-  // Check if user is a participant
-  const participant = await isParticipant(c.env, challengeId, user.id);
-  if (!participant) {
-    return c.json({ error: "Not a participant in this challenge" }, 403);
-  }
-
-  const participants = await getChallengeParticipants(c.env, challengeId);
+  const participants = result.value.participants;
 
   return c.json({
     data: {
       challenge: {
-        ...challenge,
-        is_recurring: Boolean(challenge.is_recurring),
+        ...result.value.challenge,
+        is_recurring: Boolean(result.value.challenge.is_recurring),
       },
       participants,
       participant_count: participants.length,

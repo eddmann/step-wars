@@ -1,7 +1,13 @@
 import { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../lib/utils";
 
-type BadgeVariant = "default" | "success" | "warning" | "danger" | "info" | "gold";
+type BadgeVariant =
+  | "default"
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "gold";
 type BadgeSize = "sm" | "md";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -11,7 +17,8 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]",
+  default:
+    "bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]",
   success: "bg-[var(--color-success)]/15 text-[var(--color-success)]",
   warning: "bg-[var(--color-warning)]/15 text-[var(--color-warning)]",
   danger: "bg-[var(--color-danger)]/15 text-[var(--color-danger)]",
@@ -39,7 +46,7 @@ export function Badge({
         "font-medium rounded-full",
         variantStyles[variant],
         sizeStyles[size],
-        className
+        className,
       )}
       {...props}
     >
@@ -69,14 +76,14 @@ export function StatusDot({ status, pulse = false }: StatusDotProps) {
         <span
           className={cn(
             "absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping",
-            statusColors[status]
+            statusColors[status],
           )}
         />
       )}
       <span
         className={cn(
           "relative inline-flex rounded-full h-2.5 w-2.5",
-          statusColors[status]
+          statusColors[status],
         )}
       />
     </span>
@@ -90,9 +97,18 @@ interface MedalBadgeProps {
 }
 
 const medalStyles = {
-  1: { bg: "bg-gradient-to-br from-yellow-400 to-amber-500", text: "text-amber-900" },
-  2: { bg: "bg-gradient-to-br from-gray-300 to-gray-400", text: "text-gray-700" },
-  3: { bg: "bg-gradient-to-br from-orange-400 to-orange-600", text: "text-orange-900" },
+  1: {
+    bg: "bg-gradient-to-br from-yellow-400 to-amber-500",
+    text: "text-amber-900",
+  },
+  2: {
+    bg: "bg-gradient-to-br from-gray-300 to-gray-400",
+    text: "text-gray-700",
+  },
+  3: {
+    bg: "bg-gradient-to-br from-orange-400 to-orange-600",
+    text: "text-orange-900",
+  },
 };
 
 const medalSizes = {
@@ -111,7 +127,7 @@ export function MedalBadge({ position, size = "md" }: MedalBadgeProps) {
         "rounded-full font-bold shadow-sm",
         style.bg,
         style.text,
-        medalSizes[size]
+        medalSizes[size],
       )}
     >
       {position}
@@ -144,7 +160,13 @@ export function BadgeIcon({ type, size = "md", className }: BadgeIconProps) {
   };
 
   return (
-    <span className={cn("inline-flex items-center justify-center", sizeClass[size], className)}>
+    <span
+      className={cn(
+        "inline-flex items-center justify-center",
+        sizeClass[size],
+        className,
+      )}
+    >
       {iconMap[type] || "🏅"}
     </span>
   );

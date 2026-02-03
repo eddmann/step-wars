@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import type { Env, User } from "./types";
-import { authMiddleware, getAuthenticatedUser } from "./middleware/auth";
+import { authMiddleware } from "./middleware/auth";
 import auth from "./routes/auth";
 import steps from "./routes/steps";
 import challenges from "./routes/challenges";
@@ -11,7 +11,6 @@ import goals from "./routes/goals";
 import profile from "./routes/profile";
 import { handleLeaderboard } from "./routes/leaderboard";
 import { handleDailyBreakdown } from "./routes/dailyBreakdown";
-import test from "./routes/test";
 import { handleScheduled } from "./scheduled";
 
 type AppBindings = {
@@ -45,24 +44,20 @@ app.use(
     origin: "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 // Auth routes (no authentication required)
 app.route("/api/auth", auth);
 
-// Test routes (development only, needs optional user context)
-app.use("/api/__test__/*", async (c, next) => {
-  const user = await getAuthenticatedUser(c.req.raw, c.env);
-  if (user) c.set("user", user);
-  await next();
-});
-app.route("/api/__test__", test);
-
 // Leaderboard route (must be registered before authMiddleware applies to /api/*)
 // because we need to register it with auth middleware explicitly
 app.get("/api/challenges/:id/leaderboard", authMiddleware, handleLeaderboard);
-app.get("/api/challenges/:id/daily-breakdown", authMiddleware, handleDailyBreakdown);
+app.get(
+  "/api/challenges/:id/daily-breakdown",
+  authMiddleware,
+  handleDailyBreakdown,
+);
 
 // Protected API routes (require authentication)
 app.use("/api/*", authMiddleware);

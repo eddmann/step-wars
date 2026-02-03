@@ -1,118 +1,92 @@
 # Step Wars
 
-A fitness challenge app where users compete by tracking daily steps.
+_A fitness challenge app where users compete by tracking daily steps._
 
-## Tech Stack
+This started as a friendly rivalry: a friend and I have been challenging each other on step goals for the past year. WhatsApp screenshots weren’t cutting it anymore, so I built an app to make it real.
 
-- **Frontend**: React 19, Redux Toolkit, React Router v7, Vite
-- **Backend**: Cloudflare Workers, D1 (SQLite)
-- **Styling**: CSS custom properties with iOS-inspired design
+## Rules / Gameplay
 
-## Timezone Architecture
+- Challenge modes: `cumulative` (most total steps) and `daily_winner` (top 3 daily: 3/2/1).
+- Edit window: today always editable, yesterday editable until noon.
+- Timezone model: users log in their own timezone; challenges use the creator’s timezone for leaderboards and cutoffs; cron runs at noon UTC but processes per‑challenge timezone.
 
-### Overview
+## Scoring
 
-Timezones are handled at multiple levels to ensure fairness in challenges while respecting each user's local time.
+Daily winner points: 1st=3, 2nd=2, 3rd=1.  
+Cumulative: winner is highest total steps across the challenge window.
 
-### 1. Users
-
-Each user has a timezone stored in their profile (set at registration).
-
-```
-users.timezone = "America/Los_Angeles"
-```
-
-Used for personal step logging and dashboard display.
-
-### 2. Challenges
-
-Each challenge has its own timezone, inherited from the creator.
-
-```
-challenges.timezone = "America/Los_Angeles"
-```
-
-All participants see the same "day" boundaries for that challenge, regardless of their personal timezone.
-
-### 3. Frontend
-
-Uses browser timezone via `Intl.DateTimeFormat().resolvedOptions().timeZone`.
-
-- `getToday()` and `getYesterday()` return dates in the user's local timezone
-- Ensures step submissions match the user's device clock
-
-### 4. Leaderboard
-
-Uses the **challenge's timezone** for all date calculations.
-
-- Edit cutoff calculated in challenge timezone
-- All participants see the same confirmed/pending boundaries
-- Fair visibility rules regardless of participant location
-
-### 5. Finalization (Cron Job)
-
-Runs at noon UTC daily and processes each challenge according to its own timezone.
-
-- Checks if it's past noon in each challenge's timezone before processing
-- Daily points calculated only after edit window closes
-- Challenges finalized only when end_date has passed in their timezone
-
-### Example Flow
-
-```
-Challenge in America/Los_Angeles (UTC-8):
-├── Created with timezone = "America/Los_Angeles"
-├── User in Tokyo logs 10,000 steps for Jan 12 (Tokyo local date)
-├── Cron runs at noon UTC (4am LA time) → skips this challenge
-├── Cron runs again next day at noon UTC (now noon LA time)
-│   └── Calculates daily points for Jan 11 (LA yesterday)
-├── Leaderboard shows confirmed steps based on LA noon cutoff
-```
-
-### Key Principle
-
-Everyone's "day" for a challenge ends at the same moment (midnight in the challenge's timezone), with the same edit window (until noon the next day in the challenge's timezone).
-
-## Edit Window
-
-Users can edit steps for:
-- **Today**: Always editable
-- **Yesterday**: Editable until noon (local time for dashboard, challenge time for challenges)
-
-This prevents retroactive cheating while allowing reasonable corrections.
-
-## Challenge Modes
-
-- **cumulative**: Winner has the most total steps over the challenge period
-- **daily_winner**: Points awarded daily (1st=3, 2nd=2, 3rd=1), winner has most points
-
-## Development
+## Quick Start
 
 ```bash
-# Install dependencies
-npm install
+make start
+```
 
-# Run locally (frontend + worker)
-npm run dev
+Common commands:
 
-# Apply migrations locally
-npx wrangler d1 migrations apply step-wars-db --local
+```bash
+make lint
+make test
+make build
+```
 
-# Type check
-npm run typecheck
+Run `make` to see all available targets.
 
-# Build
-npm run build
+## Architecture
+
+### Client
+
+React + Redux Toolkit + React Router SPA.
+
+- UI and routes live in `src/`.
+- API client lives in `src/lib/api.ts` with typed request/response handling.
+
+### API Architecture
+
+Cloudflare Workers + Hono + D1 SQLite, structured as a layered architecture with manual dependency injection:
+
+- Routes: `worker/routes/` (HTTP handlers, validation)
+- Use cases: `worker/usecases/` (business logic)
+- Repositories: `worker/repositories/` (data access via interfaces)
+- Services: `worker/services/` (challenge lifecycle, notifications, streak)
+- Clock injection: `worker/utils/clock.ts`
+
+Routes wire concrete implementations at call time (for example `createD1UserRepository(env)`), and use cases declare dependencies as interfaces. It’s simpler than clean/hexagonal/onion patterns: no separate domain model layer, shared types live in `shared/`, and the HTTP layer calls use cases directly without adapters. The same pattern applies to services and clock injection, keeping everything testable without mocks or network calls.
+
+## Testing
+
+### Client Testing Strategy
+
+Stack: Bun test runner + Testing Library + MSW.
+
+- UI tests: `src/**/*.test.tsx`
+- Fixtures: `src/test/fixtures.ts`
+- MSW mocks: `src/test/mocks/`
+
+Run:
+
+```bash
+make test/client
+```
+
+### API Testing Strategy
+
+- Use-case tests: `worker/test/usecases/*.test.ts`
+- Repository tests: `worker/test/repositories/*.d1.test.ts`
+- HTTP API tests: `worker/test/http/*.http.test.ts`
+
+Run:
+
+```bash
+make test/worker
 ```
 
 ## Database Migrations
 
-Migrations are in `/migrations`. Apply them with:
-
 ```bash
-# Local
-npx wrangler d1 migrations apply step-wars-db --local
-
-# Remote
-npx wrangler d1 migrations apply step-wars-db --remote
+make db
+make db/remote
 ```
+
+## License
+
+[MIT License](LICENSE)

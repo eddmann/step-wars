@@ -97,17 +97,20 @@ const sizeMap = {
   xl: "w-8 h-8",
 };
 
-export function Icon({ icon: IconComponent, size = "md", className = "" }: IconProps) {
+export function Icon({
+  icon: IconComponent,
+  size = "md",
+  className = "",
+}: IconProps) {
   return <IconComponent className={`${sizeMap[size]} ${className}`} />;
 }
 
 // Animated loading spinner
-export function Spinner({ size = "md", className = "" }: Omit<IconProps, "icon">) {
-  return (
-    <Loader2
-      className={`${sizeMap[size]} animate-spin ${className}`}
-    />
-  );
+export function Spinner({
+  size = "md",
+  className = "",
+}: Omit<IconProps, "icon">) {
+  return <Loader2 className={`${sizeMap[size]} animate-spin ${className}`} />;
 }
 
 // Custom Step icon (shoe/footprint)
@@ -136,7 +139,11 @@ interface BadgeIconProps {
   className?: string;
 }
 
-export function BadgeIcon({ type, size = "md", className = "" }: BadgeIconProps) {
+export function BadgeIcon({
+  type,
+  size = "md",
+  className = "",
+}: BadgeIconProps) {
   const sizeClass = sizeMap[size];
 
   switch (type) {

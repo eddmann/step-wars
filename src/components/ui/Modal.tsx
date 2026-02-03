@@ -30,7 +30,7 @@ export function Modal({
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     },
-    [onClose]
+    [onClose],
   );
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export function Modal({
           "shadow-[var(--shadow-lg)]",
           "animate-slide-in-bottom sm:animate-scale-in",
           "max-h-[90vh] overflow-hidden",
-          "flex flex-col"
+          "flex flex-col",
         )}
       >
         {/* iOS-style Handle */}
@@ -90,11 +90,15 @@ export function Modal({
                 "text-[var(--color-text-secondary)]",
                 "hover:bg-[var(--color-border)]",
                 "transition-colors duration-200",
-                "press-effect"
+                "press-effect",
               )}
             >
               <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
@@ -106,7 +110,7 @@ export function Modal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
@@ -165,7 +169,7 @@ export function ActionSheet({
                 action.destructive
                   ? "text-[var(--color-danger)]"
                   : "text-[var(--color-accent)]",
-                "hover:bg-[var(--color-surface-secondary)]"
+                "hover:bg-[var(--color-surface-secondary)]",
               )}
             >
               {action.label}
@@ -181,14 +185,14 @@ export function ActionSheet({
             "text-[var(--color-accent)]",
             "bg-[var(--color-surface)]",
             "rounded-[var(--radius-lg)]",
-            "press-effect"
+            "press-effect",
           )}
         >
           {cancelLabel}
         </button>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 

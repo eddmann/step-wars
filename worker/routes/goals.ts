@@ -1,74 +1,38 @@
 import { Hono } from "hono";
-import type { AppBindings, Env } from "../types";
-import {
-  getOrCreateUserGoals,
-  updateUserGoals,
-  toggleGoalsPause,
-  getTodaySteps,
-  getPendingNotifications,
-  markNotificationsAsRead,
-} from "../db/queries";
-import { getDateInTimezone } from "../../shared/dateUtils";
-
-async function getWeeklySteps(
-  env: Env,
-  userId: number,
-  timezone: string
-): Promise<number> {
-  const today = getDateInTimezone(timezone);
-
-  // Parse the date string to calculate start of week
-  const [year, month, day] = today.split("-").map(Number);
-  const todayDate = new Date(year, month - 1, day);
-
-  // Get start of week (Monday)
-  const dayOfWeek = todayDate.getDay();
-  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const startOfWeek = new Date(todayDate);
-  startOfWeek.setDate(startOfWeek.getDate() - daysFromMonday);
-  const startDate = startOfWeek.toISOString().split("T")[0];
-
-  const result = await env.DB.prepare(
-    `SELECT COALESCE(SUM(step_count), 0) as total
-     FROM step_entries
-     WHERE user_id = ? AND date >= ? AND date <= ?`
-  )
-    .bind(userId, startDate, today)
-    .first<{ total: number }>();
-
-  return result?.total || 0;
-}
+import type { AppBindings } from "../types";
+import { createD1GoalsRepository } from "../repositories/d1/goals.d1";
+import { createD1StepEntryRepository } from "../repositories/d1/step-entry.d1";
+import { createD1NotificationRepository } from "../repositories/d1/notification.d1";
+import { getGoals } from "../usecases/get-goals.usecase";
+import { updateGoals } from "../usecases/update-goals.usecase";
+import { pauseGoals } from "../usecases/pause-goals.usecase";
+import { resumeGoals } from "../usecases/resume-goals.usecase";
+import { markNotificationsRead } from "../usecases/mark-notifications-read.usecase";
+import { errorToHttpStatus, errorToMessage } from "../usecases/errors";
 
 const goals = new Hono<AppBindings>();
 
 // GET / - Get user goals and progress
 goals.get("/", async (c) => {
   const user = c.get("user");
-  const userGoals = await getOrCreateUserGoals(c.env, user.id);
 
-  // Get today's total steps across all challenges
-  const today = getDateInTimezone(user.timezone);
-  const todaySteps = await getTodaySteps(c.env, user.id, today);
+  const goalsRepository = createD1GoalsRepository(c.env);
+  const stepEntryRepository = createD1StepEntryRepository(c.env);
+  const notificationRepository = createD1NotificationRepository(c.env);
 
-  // Calculate weekly steps (last 7 days)
-  const weeklySteps = await getWeeklySteps(c.env, user.id, user.timezone);
+  const result = await getGoals(
+    { goalsRepository, stepEntryRepository, notificationRepository },
+    { userId: user.id, timezone: user.timezone },
+  );
 
-  // Get pending notifications
-  const notifications = await getPendingNotifications(c.env, user.id);
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
 
-  return c.json({
-    data: {
-      goals: {
-        ...userGoals,
-        is_paused: Boolean(userGoals.is_paused),
-      },
-      today_steps: todaySteps,
-      weekly_steps: weeklySteps,
-      daily_progress: Math.min(100, Math.round((todaySteps / userGoals.daily_target) * 100)),
-      weekly_progress: Math.min(100, Math.round((weeklySteps / userGoals.weekly_target) * 100)),
-      notifications,
-    },
-  });
+  return c.json({ data: result.value });
 });
 
 // POST /notifications/read - Mark notifications as read
@@ -80,7 +44,18 @@ goals.post("/notifications/read", async (c) => {
     return c.json({ error: "notification_ids array is required" }, 400);
   }
 
-  await markNotificationsAsRead(c.env, user.id, body.notification_ids);
+  const notificationRepository = createD1NotificationRepository(c.env);
+  const result = await markNotificationsRead(
+    { notificationRepository },
+    { userId: user.id, notificationIds: body.notification_ids },
+  );
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
 
   return c.json({ data: { success: true } });
 });
@@ -93,58 +68,75 @@ goals.put("/", async (c) => {
     weekly_target?: number;
   }>();
 
-  // Get current goals
-  const currentGoals = await getOrCreateUserGoals(c.env, user.id);
+  const goalsRepository = createD1GoalsRepository(c.env);
+
+  // Get current goals to validate ranges against defaults
+  const currentGoals = await goalsRepository.getOrCreate(user.id);
 
   const dailyTarget = body.daily_target ?? currentGoals.daily_target;
   const weeklyTarget = body.weekly_target ?? currentGoals.weekly_target;
 
   if (dailyTarget < 1000 || dailyTarget > 100000) {
-    return c.json({ error: "Daily target must be between 1,000 and 100,000" }, 400);
+    return c.json(
+      { error: "Daily target must be between 1,000 and 100,000" },
+      400,
+    );
   }
 
   if (weeklyTarget < 7000 || weeklyTarget > 700000) {
-    return c.json({ error: "Weekly target must be between 7,000 and 700,000" }, 400);
+    return c.json(
+      { error: "Weekly target must be between 7,000 and 700,000" },
+      400,
+    );
   }
 
-  const updatedGoals = await updateUserGoals(c.env, user.id, dailyTarget, weeklyTarget);
+  const result = await updateGoals(
+    { goalsRepository },
+    { userId: user.id, dailyTarget, weeklyTarget },
+  );
 
-  return c.json({
-    data: {
-      goals: {
-        ...updatedGoals,
-        is_paused: Boolean(updatedGoals.is_paused),
-      },
-    },
-  });
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: result.value });
 });
 
 // POST /pause - Pause goals
 goals.post("/pause", async (c) => {
   const user = c.get("user");
-  const updatedGoals = await toggleGoalsPause(c.env, user.id, true);
-  return c.json({
-    data: {
-      goals: {
-        ...updatedGoals,
-        is_paused: true,
-      },
-    },
-  });
+  const goalsRepository = createD1GoalsRepository(c.env);
+
+  const result = await pauseGoals({ goalsRepository }, { userId: user.id });
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: result.value });
 });
 
 // POST /resume - Resume goals
 goals.post("/resume", async (c) => {
   const user = c.get("user");
-  const updatedGoals = await toggleGoalsPause(c.env, user.id, false);
-  return c.json({
-    data: {
-      goals: {
-        ...updatedGoals,
-        is_paused: false,
-      },
-    },
-  });
+  const goalsRepository = createD1GoalsRepository(c.env);
+
+  const result = await resumeGoals({ goalsRepository }, { userId: user.id });
+
+  if (!result.ok) {
+    return c.json(
+      { error: errorToMessage(result.error) },
+      errorToHttpStatus(result.error),
+    );
+  }
+
+  return c.json({ data: result.value });
 });
 
 export default goals;

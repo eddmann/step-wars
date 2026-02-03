@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { PageContainer, PageHeader, EmptyState } from "../components/layout/AppShell";
+import {
+  PageContainer,
+  PageHeader,
+  EmptyState,
+} from "../components/layout/AppShell";
 import {
   Card,
   Button,
@@ -31,7 +35,7 @@ export default function Challenges() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { challenges, isLoading, isSubmitting, error } = useAppSelector(
-    (state) => state.challenges
+    (state) => state.challenges,
   );
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -81,7 +85,9 @@ export default function Challenges() {
       return;
     }
 
-    const result = await dispatch(joinChallenge(inviteCode.trim().toUpperCase()));
+    const result = await dispatch(
+      joinChallenge(inviteCode.trim().toUpperCase()),
+    );
     if (joinChallenge.fulfilled.match(result)) {
       setIsJoinOpen(false);
       setInviteCode("");
@@ -93,7 +99,9 @@ export default function Challenges() {
 
   const activeChallenges = challenges.filter((c) => c.status === "active");
   const pendingChallenges = challenges.filter((c) => c.status === "pending");
-  const completedChallenges = challenges.filter((c) => c.status === "completed");
+  const completedChallenges = challenges.filter(
+    (c) => c.status === "completed",
+  );
 
   return (
     <PageContainer className="animate-fade-in">
@@ -101,7 +109,11 @@ export default function Challenges() {
         title="Challenges"
         subtitle="Compete with friends"
         action={
-          <Button variant="secondary" size="sm" onClick={() => setIsJoinOpen(true)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsJoinOpen(true)}
+          >
             Join
           </Button>
         }
@@ -168,7 +180,12 @@ export default function Challenges() {
                   <ChallengeCard
                     key={challenge.id}
                     challenge={challenge}
-                    delay={(activeChallenges.length + pendingChallenges.length + idx) * 50}
+                    delay={
+                      (activeChallenges.length +
+                        pendingChallenges.length +
+                        idx) *
+                      50
+                    }
                   />
                 ))}
               </div>
@@ -197,14 +214,18 @@ export default function Challenges() {
             label="Challenge Name"
             placeholder="Weekend Warriors"
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
           />
 
           <Input
             label="Description (optional)"
             placeholder="Let's see who can get the most steps!"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -212,13 +233,17 @@ export default function Challenges() {
               label="Start Date"
               type="date"
               value={formData.start_date}
-              onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, start_date: e.target.value })
+              }
             />
             <Input
               label="End Date"
               type="date"
               value={formData.end_date}
-              onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, end_date: e.target.value })
+              }
             />
           </div>
 
@@ -236,28 +261,34 @@ export default function Challenges() {
                   "border-2",
                   formData.mode === "cumulative"
                     ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                    : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                    : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]",
                 )}
               >
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center mb-2",
-                  formData.mode === "cumulative"
-                    ? "bg-[var(--color-accent)]/20"
-                    : "bg-[var(--color-surface)]"
-                )}>
-                  <TrendingUp className={cn(
-                    "w-5 h-5",
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center mb-2",
+                    formData.mode === "cumulative"
+                      ? "bg-[var(--color-accent)]/20"
+                      : "bg-[var(--color-surface)]",
+                  )}
+                >
+                  <TrendingUp
+                    className={cn(
+                      "w-5 h-5",
+                      formData.mode === "cumulative"
+                        ? "text-[var(--color-accent)]"
+                        : "text-[var(--color-text-tertiary)]",
+                    )}
+                  />
+                </div>
+                <p
+                  className={cn(
+                    "text-[15px] font-semibold mb-1",
                     formData.mode === "cumulative"
                       ? "text-[var(--color-accent)]"
-                      : "text-[var(--color-text-tertiary)]"
-                  )} />
-                </div>
-                <p className={cn(
-                  "text-[15px] font-semibold mb-1",
-                  formData.mode === "cumulative"
-                    ? "text-[var(--color-accent)]"
-                    : "text-[var(--color-text-primary)]"
-                )}>
+                      : "text-[var(--color-text-primary)]",
+                  )}
+                >
                   Cumulative
                 </p>
                 <p className="text-[12px] text-[var(--color-text-secondary)] leading-tight">
@@ -267,34 +298,42 @@ export default function Challenges() {
 
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, mode: "daily_winner" })}
+                onClick={() =>
+                  setFormData({ ...formData, mode: "daily_winner" })
+                }
                 className={cn(
                   "p-4 rounded-[var(--radius-md)] text-left transition-all duration-200",
                   "border-2",
                   formData.mode === "daily_winner"
                     ? "border-[var(--color-warning)] bg-[var(--color-warning)]/10"
-                    : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                    : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]",
                 )}
               >
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center mb-2",
-                  formData.mode === "daily_winner"
-                    ? "bg-[var(--color-warning)]/20"
-                    : "bg-[var(--color-surface)]"
-                )}>
-                  <Award className={cn(
-                    "w-5 h-5",
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center mb-2",
+                    formData.mode === "daily_winner"
+                      ? "bg-[var(--color-warning)]/20"
+                      : "bg-[var(--color-surface)]",
+                  )}
+                >
+                  <Award
+                    className={cn(
+                      "w-5 h-5",
+                      formData.mode === "daily_winner"
+                        ? "text-[var(--color-warning)]"
+                        : "text-[var(--color-text-tertiary)]",
+                    )}
+                  />
+                </div>
+                <p
+                  className={cn(
+                    "text-[15px] font-semibold mb-1",
                     formData.mode === "daily_winner"
                       ? "text-[var(--color-warning)]"
-                      : "text-[var(--color-text-tertiary)]"
-                  )} />
-                </div>
-                <p className={cn(
-                  "text-[15px] font-semibold mb-1",
-                  formData.mode === "daily_winner"
-                    ? "text-[var(--color-warning)]"
-                    : "text-[var(--color-text-primary)]"
-                )}>
+                      : "text-[var(--color-text-primary)]",
+                  )}
+                >
                   Daily Winner
                 </p>
                 <p className="text-[12px] text-[var(--color-text-secondary)] leading-tight">
@@ -311,39 +350,47 @@ export default function Challenges() {
             </label>
             <button
               type="button"
-              onClick={() => setFormData({
-                ...formData,
-                is_recurring: !formData.is_recurring,
-                recurring_interval: !formData.is_recurring ? "weekly" : null
-              })}
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  is_recurring: !formData.is_recurring,
+                  recurring_interval: !formData.is_recurring ? "weekly" : null,
+                })
+              }
               className={cn(
                 "w-full p-4 rounded-[var(--radius-md)] text-left transition-all duration-200",
                 "border-2 flex items-center gap-3",
                 formData.is_recurring
                   ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                  : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                  : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]",
               )}
             >
-              <div className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                formData.is_recurring
-                  ? "bg-[var(--color-accent)]/20"
-                  : "bg-[var(--color-surface)]"
-              )}>
-                <RefreshCw className={cn(
-                  "w-5 h-5",
+              <div
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
                   formData.is_recurring
-                    ? "text-[var(--color-accent)]"
-                    : "text-[var(--color-text-tertiary)]"
-                )} />
+                    ? "bg-[var(--color-accent)]/20"
+                    : "bg-[var(--color-surface)]",
+                )}
+              >
+                <RefreshCw
+                  className={cn(
+                    "w-5 h-5",
+                    formData.is_recurring
+                      ? "text-[var(--color-accent)]"
+                      : "text-[var(--color-text-tertiary)]",
+                  )}
+                />
               </div>
               <div className="flex-1">
-                <p className={cn(
-                  "text-[15px] font-semibold",
-                  formData.is_recurring
-                    ? "text-[var(--color-accent)]"
-                    : "text-[var(--color-text-primary)]"
-                )}>
+                <p
+                  className={cn(
+                    "text-[15px] font-semibold",
+                    formData.is_recurring
+                      ? "text-[var(--color-accent)]"
+                      : "text-[var(--color-text-primary)]",
+                  )}
+                >
                   {formData.is_recurring ? "Recurring" : "One-time"}
                 </p>
                 <p className="text-[12px] text-[var(--color-text-secondary)] leading-tight">
@@ -359,41 +406,49 @@ export default function Challenges() {
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, recurring_interval: "weekly" })}
+                  onClick={() =>
+                    setFormData({ ...formData, recurring_interval: "weekly" })
+                  }
                   className={cn(
                     "p-3 rounded-[var(--radius-md)] text-center transition-all duration-200",
                     "border-2",
                     formData.recurring_interval === "weekly"
                       ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                      : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]",
                   )}
                 >
-                  <p className={cn(
-                    "text-[14px] font-semibold",
-                    formData.recurring_interval === "weekly"
-                      ? "text-[var(--color-accent)]"
-                      : "text-[var(--color-text-primary)]"
-                  )}>
+                  <p
+                    className={cn(
+                      "text-[14px] font-semibold",
+                      formData.recurring_interval === "weekly"
+                        ? "text-[var(--color-accent)]"
+                        : "text-[var(--color-text-primary)]",
+                    )}
+                  >
                     Weekly
                   </p>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, recurring_interval: "monthly" })}
+                  onClick={() =>
+                    setFormData({ ...formData, recurring_interval: "monthly" })
+                  }
                   className={cn(
                     "p-3 rounded-[var(--radius-md)] text-center transition-all duration-200",
                     "border-2",
                     formData.recurring_interval === "monthly"
                       ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                      : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-secondary)] hover:border-[var(--color-text-tertiary)]",
                   )}
                 >
-                  <p className={cn(
-                    "text-[14px] font-semibold",
-                    formData.recurring_interval === "monthly"
-                      ? "text-[var(--color-accent)]"
-                      : "text-[var(--color-text-primary)]"
-                  )}>
+                  <p
+                    className={cn(
+                      "text-[14px] font-semibold",
+                      formData.recurring_interval === "monthly"
+                        ? "text-[var(--color-accent)]"
+                        : "text-[var(--color-text-primary)]",
+                    )}
+                  >
                     Monthly
                   </p>
                 </button>
@@ -402,10 +457,18 @@ export default function Challenges() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsCreateOpen(false)}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setIsCreateOpen(false)}
+            >
               Cancel
             </Button>
-            <Button fullWidth onClick={handleCreateChallenge} isLoading={isSubmitting}>
+            <Button
+              fullWidth
+              onClick={handleCreateChallenge}
+              isLoading={isSubmitting}
+            >
               Create
             </Button>
           </div>
@@ -429,10 +492,18 @@ export default function Challenges() {
           />
 
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsJoinOpen(false)}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setIsJoinOpen(false)}
+            >
               Cancel
             </Button>
-            <Button fullWidth onClick={handleJoinChallenge} isLoading={isSubmitting}>
+            <Button
+              fullWidth
+              onClick={handleJoinChallenge}
+              isLoading={isSubmitting}
+            >
               Join
             </Button>
           </div>
@@ -483,7 +554,8 @@ function ChallengeCard({ challenge, delay = 0 }: ChallengeCardProps) {
               "w-12 h-12 rounded-full flex items-center justify-center",
               challenge.status === "active" && "bg-[var(--color-success)]/15",
               challenge.status === "pending" && "bg-[var(--color-warning)]/15",
-              challenge.status === "completed" && "bg-[var(--color-surface-secondary)]"
+              challenge.status === "completed" &&
+                "bg-[var(--color-surface-secondary)]",
             )}
           >
             <Trophy
@@ -491,7 +563,8 @@ function ChallengeCard({ challenge, delay = 0 }: ChallengeCardProps) {
                 "w-6 h-6",
                 challenge.status === "active" && "text-[var(--color-success)]",
                 challenge.status === "pending" && "text-[var(--color-warning)]",
-                challenge.status === "completed" && "text-[var(--color-text-tertiary)]"
+                challenge.status === "completed" &&
+                  "text-[var(--color-text-tertiary)]",
               )}
             />
           </div>
@@ -501,7 +574,11 @@ function ChallengeCard({ challenge, delay = 0 }: ChallengeCardProps) {
               <p className="font-semibold text-[var(--color-text-primary)] truncate">
                 {challenge.title}
               </p>
-              <Badge variant={statusVariant[challenge.status as keyof typeof statusVariant]}>
+              <Badge
+                variant={
+                  statusVariant[challenge.status as keyof typeof statusVariant]
+                }
+              >
                 {statusLabel[challenge.status as keyof typeof statusLabel]}
               </Badge>
             </div>

@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { PageContainer, PageHeader } from "../components/layout/AppShell";
-import { Card, Button, Input, Modal, Footprints, Calendar, Edit2, ChevronLeft } from "../components/ui";
+import {
+  Card,
+  Button,
+  Input,
+  Modal,
+  Footprints,
+  Calendar,
+  Edit2,
+  ChevronLeft,
+} from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import { fetchStepHistory } from "../store/slices/stepsSlice";
 import { submitSteps } from "../store/slices/goalsSlice";
@@ -36,7 +45,9 @@ export default function StepHistory() {
       return;
     }
 
-    const result = await dispatch(submitSteps({ date: editDate, stepCount: steps }));
+    const result = await dispatch(
+      submitSteps({ date: editDate, stepCount: steps }),
+    );
     if (submitSteps.fulfilled.match(result)) {
       setIsEditOpen(false);
       showToast("success", "Steps updated!");
@@ -49,7 +60,11 @@ export default function StepHistory() {
       <PageHeader
         title="Step History"
         action={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/profile")}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/profile")}
+          >
             <ChevronLeft className="w-5 h-5" />
           </Button>
         }
@@ -57,7 +72,7 @@ export default function StepHistory() {
 
       {isLoading ? (
         <Card>
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="step-history-loading">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-3 animate-pulse">
                 <div className="w-10 h-10 rounded-full bg-[var(--color-surface-secondary)]" />
@@ -121,7 +136,9 @@ export default function StepHistory() {
                   </div>
                   {isEditable && (
                     <button
-                      onClick={() => handleEditEntry(entry.date, entry.step_count)}
+                      onClick={() =>
+                        handleEditEntry(entry.date, entry.step_count)
+                      }
                       className="p-2 rounded-full hover:bg-[var(--color-surface-secondary)] text-[var(--color-text-tertiary)] hover:text-[var(--color-accent)] transition-colors"
                       aria-label="Edit entry"
                     >
@@ -140,7 +157,11 @@ export default function StepHistory() {
       )}
 
       {/* Edit Steps Modal */}
-      <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Steps">
+      <Modal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        title="Edit Steps"
+      >
         <div className="space-y-4">
           <p className="text-[14px] text-[var(--color-text-secondary)]">
             Update steps for {formatDate(editDate)}
@@ -156,10 +177,18 @@ export default function StepHistory() {
           />
 
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsEditOpen(false)}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setIsEditOpen(false)}
+            >
               Cancel
             </Button>
-            <Button fullWidth onClick={handleSaveSteps} isLoading={isSubmitting}>
+            <Button
+              fullWidth
+              onClick={handleSaveSteps}
+              isLoading={isSubmitting}
+            >
               Save
             </Button>
           </div>

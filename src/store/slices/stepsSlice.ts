@@ -22,7 +22,7 @@ export const fetchStepHistory = createAsyncThunk(
       return rejectWithValue(response.error);
     }
     return response.data!.entries;
-  }
+  },
 );
 
 const stepsSlice = createSlice({

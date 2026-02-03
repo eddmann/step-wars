@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle, AlertCircle, Info, X } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -48,7 +54,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
         }, duration);
       }
     },
-    []
+    [],
   );
 
   const dismissToast = useCallback((id: string) => {
@@ -82,7 +88,7 @@ function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
         />
       ))}
     </div>,
-    document.body
+    document.body,
   );
 }
 
@@ -121,7 +127,7 @@ function ToastItem({ toast, onDismiss, style }: ToastItemProps) {
         "flex items-center gap-3",
         "max-w-sm w-full",
         "pointer-events-auto",
-        "animate-toast-in"
+        "animate-toast-in",
       )}
       style={style}
       role="alert"

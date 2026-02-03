@@ -14,7 +14,14 @@ import type {
   DaySummary,
 } from "../types";
 
-const API_BASE = "/api";
+const getApiBase = () => {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/api`;
+  }
+  return "http://localhost:3000/api";
+};
+
+const API_BASE = getApiBase();
 
 function getToken(): string | null {
   return localStorage.getItem("step_wars_token");
@@ -22,7 +29,7 @@ function getToken(): string | null {
 
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
   const token = getToken();
 
@@ -38,21 +45,24 @@ async function fetchApi<T>(
       headers,
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ApiResponse<T> & { error?: string };
 
     if (!response.ok) {
-      return { error: data.error || "An error occurred" };
+      return {
+        error:
+          typeof data.error === "string" ? data.error : "An error occurred",
+      };
     }
 
     return data;
-  } catch (error) {
+  } catch {
     return { error: "Network error. Please try again." };
   }
 }
 
 // Auth
 export async function login(
-  credentials: LoginForm
+  credentials: LoginForm,
 ): Promise<ApiResponse<{ user: User; token: string }>> {
   return fetchApi("/auth/login", {
     method: "POST",
@@ -61,7 +71,7 @@ export async function login(
 }
 
 export async function register(
-  data: RegisterForm
+  data: RegisterForm,
 ): Promise<ApiResponse<{ user: User; token: string }>> {
   return fetchApi("/auth/register", {
     method: "POST",
@@ -95,7 +105,7 @@ export async function getChallenge(id: number): Promise<
 }
 
 export async function createChallenge(
-  data: CreateChallengeForm
+  data: CreateChallengeForm,
 ): Promise<ApiResponse<{ challenge: Challenge }>> {
   return fetchApi("/challenges", {
     method: "POST",
@@ -104,7 +114,7 @@ export async function createChallenge(
 }
 
 export async function joinChallenge(
-  inviteCode: string
+  inviteCode: string,
 ): Promise<ApiResponse<{ challenge: Challenge }>> {
   return fetchApi("/challenges/join", {
     method: "POST",
@@ -137,14 +147,16 @@ export async function getDailyBreakdown(challengeId: number): Promise<
 }
 
 // Steps (global step entry)
-export async function getSteps(): Promise<ApiResponse<{ entries: StepEntry[] }>> {
+export async function getSteps(): Promise<
+  ApiResponse<{ entries: StepEntry[] }>
+> {
   return fetchApi("/steps");
 }
 
 export async function submitSteps(
   date: string,
   stepCount: number,
-  source: string = "manual"
+  source: string = "manual",
 ): Promise<ApiResponse<{ entry: StepEntry }>> {
   return fetchApi("/steps", {
     method: "POST",
@@ -153,7 +165,7 @@ export async function submitSteps(
 }
 
 export async function getStepsForDate(
-  date: string
+  date: string,
 ): Promise<ApiResponse<{ entry: StepEntry | null }>> {
   return fetchApi(`/steps/${date}`);
 }
@@ -173,7 +185,7 @@ export async function getGoals(): Promise<
 }
 
 export async function markNotificationsAsRead(
-  notificationIds: number[]
+  notificationIds: number[],
 ): Promise<ApiResponse<{ success: boolean }>> {
   return fetchApi("/goals/notifications/read", {
     method: "POST",
@@ -183,11 +195,14 @@ export async function markNotificationsAsRead(
 
 export async function updateGoals(
   dailyTarget: number,
-  weeklyTarget: number
+  weeklyTarget: number,
 ): Promise<ApiResponse<{ goals: UserGoals }>> {
   return fetchApi("/goals", {
     method: "PUT",
-    body: JSON.stringify({ daily_target: dailyTarget, weekly_target: weeklyTarget }),
+    body: JSON.stringify({
+      daily_target: dailyTarget,
+      weekly_target: weeklyTarget,
+    }),
   });
 }
 
@@ -195,7 +210,9 @@ export async function pauseGoals(): Promise<ApiResponse<{ goals: UserGoals }>> {
   return fetchApi("/goals/pause", { method: "POST" });
 }
 
-export async function resumeGoals(): Promise<ApiResponse<{ goals: UserGoals }>> {
+export async function resumeGoals(): Promise<
+  ApiResponse<{ goals: UserGoals }>
+> {
   return fetchApi("/goals/resume", { method: "POST" });
 }
 
@@ -219,7 +236,7 @@ export async function getProfile(): Promise<
 export async function updateProfile(
   name: string,
   email: string,
-  timezone?: string
+  timezone?: string,
 ): Promise<ApiResponse<{ user: User }>> {
   return fetchApi("/profile", {
     method: "PUT",

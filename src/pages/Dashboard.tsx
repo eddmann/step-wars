@@ -13,16 +13,28 @@ import {
   Input,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
-import { fetchGoals, submitSteps, markNotificationsAsRead } from "../store/slices/goalsSlice";
+import {
+  fetchGoals,
+  submitSteps,
+  markNotificationsAsRead,
+} from "../store/slices/goalsSlice";
 import { fetchChallenges } from "../store/slices/challengesSlice";
-import { getGreeting, formatNumber, getToday, getYesterday, canEditDate, formatDate } from "../lib/utils";
+import {
+  getGreeting,
+  formatNumber,
+  getToday,
+  getYesterday,
+  canEditDate,
+  formatDate,
+} from "../lib/utils";
 import { useToast } from "../components/ui/Toast";
 
 export default function Dashboard() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { user } = useAppSelector((state) => state.auth);
-  const { goals, todaySteps, dailyProgress, isSubmitting, notifications } = useAppSelector((state) => state.goals);
+  const { goals, todaySteps, dailyProgress, isSubmitting, notifications } =
+    useAppSelector((state) => state.goals);
   const { challenges } = useAppSelector((state) => state.challenges);
 
   const [isLogOpen, setIsLogOpen] = useState(false);
@@ -41,7 +53,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (notifications.length > 0) {
       const unshownNotifications = notifications.filter(
-        (n) => !shownNotifications.current.has(n.id)
+        (n) => !shownNotifications.current.has(n.id),
       );
 
       if (unshownNotifications.length > 0) {
@@ -52,7 +64,10 @@ export default function Dashboard() {
         // Show each toast with a slight delay between them
         unshownNotifications.forEach((notification, index) => {
           setTimeout(() => {
-            showToast("success", `${notification.title} ${notification.message}`);
+            showToast(
+              "success",
+              `${notification.title} ${notification.message}`,
+            );
           }, index * 500);
         });
 
@@ -81,19 +96,21 @@ export default function Dashboard() {
       return;
     }
 
-    const result = await dispatch(submitSteps({ date: selectedDate, stepCount: steps }));
+    const result = await dispatch(
+      submitSteps({ date: selectedDate, stepCount: steps }),
+    );
 
     if (submitSteps.fulfilled.match(result)) {
       setIsLogOpen(false);
       setStepCount("");
       showToast("success", "Steps logged!");
     } else {
-      showToast("error", result.payload as string || "Failed to log steps");
+      showToast("error", (result.payload as string) || "Failed to log steps");
     }
   };
 
   const activeChallenges = challenges.filter(
-    (c) => c.status === "active" || c.status === "pending"
+    (c) => c.status === "active" || c.status === "pending",
   );
   const firstName = user?.name.split(" ")[0] || "there";
 
@@ -169,9 +186,7 @@ export default function Dashboard() {
               </p>
             </div>
             {goals.longest_streak > goals.current_streak && (
-              <Badge variant="gold">
-                Best: {goals.longest_streak}
-              </Badge>
+              <Badge variant="gold">Best: {goals.longest_streak}</Badge>
             )}
           </div>
         </Card>
@@ -213,7 +228,11 @@ export default function Dashboard() {
                       {challenge.participant_count} participants
                     </p>
                   </div>
-                  <Badge variant={challenge.status === "active" ? "success" : "default"}>
+                  <Badge
+                    variant={
+                      challenge.status === "active" ? "success" : "default"
+                    }
+                  >
                     {challenge.status === "active" ? "Active" : "Pending"}
                   </Badge>
                   <ChevronRight className="w-5 h-5 text-[var(--color-text-tertiary)]" />
@@ -242,7 +261,11 @@ export default function Dashboard() {
       )}
 
       {/* Log Steps Modal */}
-      <Modal isOpen={isLogOpen} onClose={() => setIsLogOpen(false)} title="Log Steps">
+      <Modal
+        isOpen={isLogOpen}
+        onClose={() => setIsLogOpen(false)}
+        title="Log Steps"
+      >
         <div className="space-y-4">
           {/* Quick Date Buttons */}
           <div>
@@ -259,7 +282,9 @@ export default function Dashboard() {
               </Button>
               {canEditDate(getYesterday()) && (
                 <Button
-                  variant={selectedDate === getYesterday() ? "primary" : "secondary"}
+                  variant={
+                    selectedDate === getYesterday() ? "primary" : "secondary"
+                  }
                   size="sm"
                   onClick={() => setSelectedDate(getYesterday())}
                 >
@@ -287,10 +312,18 @@ export default function Dashboard() {
           </p>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsLogOpen(false)}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setIsLogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button fullWidth onClick={handleSubmitSteps} isLoading={isSubmitting}>
+            <Button
+              fullWidth
+              onClick={handleSubmitSteps}
+              isLoading={isSubmitting}
+            >
               Save
             </Button>
           </div>

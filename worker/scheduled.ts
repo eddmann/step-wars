@@ -1,5 +1,11 @@
 import type { Env } from "./types";
-import { calculateDailyPoints, finalizeChallenges, activatePendingChallenges } from "./services/finalization";
+import { createD1ChallengeRepository } from "./repositories/d1/challenge.d1";
+import { createD1ParticipantRepository } from "./repositories/d1/participant.d1";
+import { createD1DailyPointsRepository } from "./repositories/d1/daily-points.d1";
+import { createD1LeaderboardRepository } from "./repositories/d1/leaderboard.d1";
+import { createD1BadgeRepository } from "./repositories/d1/badge.d1";
+import { createD1NotificationRepository } from "./repositories/d1/notification.d1";
+import { runCron } from "./usecases/run-cron.usecase";
 
 /**
  * Scheduled handler for the cron job.
@@ -13,26 +19,22 @@ import { calculateDailyPoints, finalizeChallenges, activatePendingChallenges } f
 export async function handleScheduled(
   _controller: import("@cloudflare/workers-types").ScheduledController,
   env: Env,
-  _ctx: import("@cloudflare/workers-types").ExecutionContext
+  _ctx: import("@cloudflare/workers-types").ExecutionContext,
 ): Promise<void> {
-  console.log("[Scheduled] Running daily finalization");
+  void _controller;
+  void _ctx;
 
   try {
-    // 1. Activate any pending challenges that should now be active
-    // (each challenge checked against its own timezone)
-    await activatePendingChallenges(env);
-    console.log("[Scheduled] Activated pending challenges");
+    const deps = {
+      challengeRepository: createD1ChallengeRepository(env),
+      participantRepository: createD1ParticipantRepository(env),
+      dailyPointsRepository: createD1DailyPointsRepository(env),
+      leaderboardRepository: createD1LeaderboardRepository(env),
+      badgeRepository: createD1BadgeRepository(env),
+      notificationRepository: createD1NotificationRepository(env),
+    };
 
-    // 2. Calculate daily points for challenges past their edit deadline
-    // (each challenge uses its own timezone to determine "yesterday")
-    await calculateDailyPoints(env);
-    console.log("[Scheduled] Calculated daily points");
-
-    // 3. Finalize challenges that have ended (past edit deadline in their timezone)
-    await finalizeChallenges(env);
-    console.log("[Scheduled] Finalized completed challenges");
-
-    console.log("[Scheduled] Daily finalization complete");
+    await runCron(deps);
   } catch (error) {
     console.error("[Scheduled] Error during finalization:", error);
     throw error;

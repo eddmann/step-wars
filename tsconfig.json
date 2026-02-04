@@ -15,12 +15,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["@cloudflare/workers-types/2023-07-01", "bun-types"],
-    "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["./shared/*"]
-    },
-    "baseUrl": "."
+    "types": ["@cloudflare/workers-types/2023-07-01", "bun-types"]
   },
   "include": ["src", "shared", "worker"],
   "exclude": ["worker/test"]

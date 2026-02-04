@@ -1,4 +1,4 @@
-import { EDIT_DEADLINE_HOUR } from "@shared/constants";
+import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 
 /**
  * Utility for merging class names

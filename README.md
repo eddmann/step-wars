@@ -1,8 +1,14 @@
+<p align="center">
+  <img src="docs/logo.svg" alt="Step Wars" width="400">
+</p>
+
 # Step Wars
 
 _A fitness challenge app where users compete by tracking daily steps._
 
-This started as a friendly rivalry: a friend and I have been challenging each other on step goals for the past year. WhatsApp screenshots weren’t cutting it anymore, so I built an app to make it real.
+This started as a friendly rivalry: a friend and I have been challenging each other on step goals for the past year. WhatsApp screenshots weren't cutting it anymore, so I built an app to make it real.
+
+![Step Wars Intro](docs/step-wars.gif)
 
 ## Rules / Gameplay
 

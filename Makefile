@@ -74,6 +74,13 @@ deploy: ## Deploy to Cloudflare
 
 can-release: lint test ## CI gate - all checks
 
+##@ iOS
+
+ios/setup: ## Generate iOS project with PWAKit
+	rm -rf ios
+	npx @pwa-kit/cli init ios --url "https://step-wars.eddmann.workers.dev/" --features "notifications,haptics,healthkit"
+	open ios/PWAKitApp.xcodeproj
+
 ##@ Utilities
 
 clean: ## Clean build artifacts

@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { UserGoals, PendingNotification } from "../../types";
 import * as api from "../../lib/api";
+import { initHealthKit, queryStepsForDate } from "../../lib/pwakit";
+import { getToday, getYesterday, canEditDate } from "../../lib/utils";
 
 interface GoalsState {
   goals: UserGoals | null;
@@ -11,6 +13,7 @@ interface GoalsState {
   notifications: PendingNotification[];
   isLoading: boolean;
   isSubmitting: boolean;
+  isSyncing: boolean;
   error: string | null;
 }
 
@@ -23,6 +26,7 @@ const initialState: GoalsState = {
   notifications: [],
   isLoading: false,
   isSubmitting: false,
+  isSyncing: false,
   error: null,
 };
 
@@ -93,6 +97,33 @@ export const submitSteps = createAsyncThunk(
     // Refresh goals to update todaySteps
     dispatch(fetchGoals());
     return response.data!.entry;
+  },
+);
+
+export const syncHealthKit = createAsyncThunk(
+  "goals/syncHealthKit",
+  async (_, { dispatch }) => {
+    const authorized = await initHealthKit();
+    if (!authorized) return { totalSynced: 0 };
+
+    const today = getToday();
+    const yesterday = getYesterday();
+    const datesToSync = [today, ...(canEditDate(yesterday) ? [yesterday] : [])];
+
+    let totalSynced = 0;
+    for (const date of datesToSync) {
+      const steps = await queryStepsForDate(date);
+      if (steps > 0) {
+        const result = await dispatch(
+          submitSteps({ date, stepCount: steps, source: "healthkit" }),
+        );
+        if (submitSteps.fulfilled.match(result)) {
+          totalSynced += steps;
+        }
+      }
+    }
+
+    return { totalSynced };
   },
 );
 
@@ -181,6 +212,17 @@ const goalsSlice = createSlice({
     builder.addCase(submitSteps.rejected, (state, action) => {
       state.isSubmitting = false;
       state.error = action.payload as string;
+    });
+
+    // Sync HealthKit
+    builder.addCase(syncHealthKit.pending, (state) => {
+      state.isSyncing = true;
+    });
+    builder.addCase(syncHealthKit.fulfilled, (state) => {
+      state.isSyncing = false;
+    });
+    builder.addCase(syncHealthKit.rejected, (state) => {
+      state.isSyncing = false;
     });
 
     // Mark notifications as read

@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from "../store";
 import {
   fetchGoals,
   submitSteps,
+  syncHealthKit,
   markNotificationsAsRead,
 } from "../store/slices/goalsSlice";
 import { fetchChallenges } from "../store/slices/challengesSlice";
@@ -28,13 +29,20 @@ import {
   formatDate,
 } from "../lib/utils";
 import { useToast } from "../components/ui/Toast";
+import { isPWAKit, triggerSyncHaptic } from "../lib/pwakit";
 
 export default function Dashboard() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { user } = useAppSelector((state) => state.auth);
-  const { goals, todaySteps, dailyProgress, isSubmitting, notifications } =
-    useAppSelector((state) => state.goals);
+  const {
+    goals,
+    todaySteps,
+    dailyProgress,
+    isSubmitting,
+    isSyncing,
+    notifications,
+  } = useAppSelector((state) => state.goals);
   const { challenges } = useAppSelector((state) => state.challenges);
 
   const [isLogOpen, setIsLogOpen] = useState(false);
@@ -43,10 +51,18 @@ export default function Dashboard() {
 
   // Track which notifications we've shown to avoid duplicates
   const shownNotifications = useRef<Set<number>>(new Set());
+  const syncInitialized = useRef(false);
 
   useEffect(() => {
     dispatch(fetchGoals());
     dispatch(fetchChallenges());
+  }, [dispatch]);
+
+  // Auto-sync from HealthKit on mount
+  useEffect(() => {
+    if (!isPWAKit || syncInitialized.current) return;
+    syncInitialized.current = true;
+    dispatch(syncHealthKit());
   }, [dispatch]);
 
   // Show toast notifications for pending notifications
@@ -161,14 +177,37 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      {/* Log Steps Button */}
-      <Button
-        fullWidth
-        onClick={() => setIsLogOpen(true)}
-        className="mb-6 animate-slide-up stagger-2"
-      >
-        Log Today's Steps
-      </Button>
+      {/* Log Steps Buttons */}
+      <div className="flex gap-3 mb-6 animate-slide-up stagger-2">
+        <Button fullWidth onClick={() => setIsLogOpen(true)}>
+          Log Today's Steps
+        </Button>
+        {isPWAKit && (
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() =>
+              dispatch(syncHealthKit())
+                .unwrap()
+                .then(async ({ totalSynced }) => {
+                  if (totalSynced > 0) {
+                    showToast(
+                      "success",
+                      `Synced ${formatNumber(totalSynced)} steps from Health`,
+                    );
+                    await triggerSyncHaptic();
+                  }
+                })
+                .catch(() => {
+                  showToast("error", "Failed to sync from Health");
+                })
+            }
+            isLoading={isSyncing}
+          >
+            Sync from Health
+          </Button>
+        )}
+      </div>
 
       {/* Streak Card */}
       {goals && goals.current_streak > 0 && (

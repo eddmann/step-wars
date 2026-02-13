@@ -37,6 +37,7 @@ import {
   Moon,
   Monitor,
   Footprints,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 
@@ -80,6 +81,7 @@ export {
   Moon,
   Monitor,
   Footprints,
+  Bell,
 };
 
 // Icon wrapper component with consistent sizing

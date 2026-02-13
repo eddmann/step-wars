@@ -14,7 +14,7 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-dvh flex flex-col bg-[var(--color-background)]">
-      <main className="flex-1 pb-[calc(49px+env(safe-area-inset-bottom,0px))]">
+      <main className="flex-1 pt-[env(safe-area-inset-top,0px)] pb-[calc(49px+env(safe-area-inset-bottom,0px))]">
         {children}
       </main>
       <TabBar />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { PageContainer, PageHeader } from "../components/layout/AppShell";
 import {
@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  Bell,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import { logout } from "../store/slices/authSlice";
@@ -29,6 +30,12 @@ import { fetchProfile, updateProfile } from "../store/slices/profileSlice";
 import { useToast } from "../components/ui/Toast";
 import { useTheme } from "../components/ThemeProvider";
 import { formatNumber, formatDate, getBadgeName, cn } from "../lib/utils";
+import {
+  isPWAKit,
+  isStepReminderScheduled,
+  scheduleStepReminder,
+  cancelStepReminder,
+} from "../lib/pwakit";
 
 type ThemeOption = "light" | "dark" | "system";
 
@@ -53,10 +60,40 @@ export default function Profile() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [timezone, setTimezone] = useState("");
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchProfile());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!isPWAKit) return;
+    isStepReminderScheduled()
+      .then(setReminderEnabled)
+      .catch(() => {});
+  }, []);
+
+  const handleToggleReminder = useCallback(async () => {
+    setReminderLoading(true);
+    try {
+      if (reminderEnabled) {
+        await cancelStepReminder();
+        setReminderEnabled(false);
+      } else {
+        const scheduled = await scheduleStepReminder();
+        if (scheduled) {
+          setReminderEnabled(true);
+        } else {
+          showToast("error", "Notification permission was denied");
+        }
+      }
+    } catch {
+      showToast("error", "Failed to update reminder");
+    } finally {
+      setReminderLoading(false);
+    }
+  }, [reminderEnabled, showToast]);
 
   useEffect(() => {
     if (user) {
@@ -247,6 +284,51 @@ export default function Profile() {
           })}
         </div>
       </Card>
+
+      {/* Daily Reminder */}
+      {isPWAKit && (
+        <Card
+          className="mb-6 animate-slide-up"
+          style={{ animationDelay: "255ms" }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]/12 flex items-center justify-center">
+                <Bell className="w-5 h-5 text-[var(--color-accent)]" />
+              </div>
+              <div>
+                <p className="text-[15px] font-semibold text-[var(--color-text-primary)]">
+                  Daily Reminder
+                </p>
+                <p className="text-[13px] text-[var(--color-text-secondary)]">
+                  Get notified at 8am to sync steps
+                </p>
+              </div>
+            </div>
+            <button
+              role="switch"
+              aria-checked={reminderEnabled}
+              aria-label="Daily step reminder"
+              disabled={reminderLoading}
+              onClick={handleToggleReminder}
+              className={cn(
+                "relative inline-flex h-[31px] w-[51px] shrink-0 items-center rounded-full transition-colors duration-200",
+                reminderEnabled
+                  ? "bg-[var(--color-success)]"
+                  : "bg-[var(--color-border)]",
+                reminderLoading && "opacity-50",
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-[27px] w-[27px] rounded-full bg-white shadow-sm transition-transform duration-200",
+                  reminderEnabled ? "translate-x-[22px]" : "translate-x-[2px]",
+                )}
+              />
+            </button>
+          </div>
+        </Card>
+      )}
 
       {/* Settings */}
       <CardGroup

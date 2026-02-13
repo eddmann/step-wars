@@ -37,6 +37,14 @@ make build
 
 Run `make` to see all available targets.
 
+## iOS App
+
+The native iOS wrapper is built with [PWAKit](https://github.com/eddmann/pwa-kit). To configure a fresh clone:
+
+```bash
+npx @pwa-kit/cli init ios --url "https://step-wars.eddmann.workers.dev/" --features "notifications,haptics,healthkit"
+```
+
 ## Architecture
 
 ### Client

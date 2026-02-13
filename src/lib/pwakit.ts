@@ -1,4 +1,4 @@
-import { isNative, haptics, ios, push } from "@eddmann/pwa-kit-sdk";
+import { isNative, haptics, ios, push } from "@pwa-kit/sdk";
 
 export const isPWAKit = isNative;
 

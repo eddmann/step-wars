@@ -315,15 +315,19 @@ body {
    ======================================== */
 
 .press-effect {
-  transition:
-    transform 0.15s ease-out,
-    opacity 0.15s ease-out;
+  transition: background-color 0.3s ease-out, opacity 0.3s ease-out;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .press-effect:active {
-  transform: scale(0.97);
-  opacity: 0.8;
+  background-color: rgba(0, 0, 0, 0.1);
   transition: none;
+}
+
+button.press-effect:active,
+a.press-effect:active {
+  background-color: unset;
+  opacity: 0.7;
 }
 
 .focus-ring:focus-visible {

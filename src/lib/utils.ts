@@ -166,7 +166,7 @@ export function getBadgeStyle(badgeType: string): {
     case "streak_7":
     case "streak_14":
     case "streak_30":
-    case "streak_60":
+    case "streak_50":
     case "streak_100":
       return { bg: "bg-orange-100", text: "text-orange-800", icon: "flame" };
     default:
@@ -189,8 +189,8 @@ export function getBadgeName(badgeType: string): string {
       return "14 Day Streak";
     case "streak_30":
       return "30 Day Streak";
-    case "streak_60":
-      return "60 Day Streak";
+    case "streak_50":
+      return "50 Day Streak";
     case "streak_100":
       return "100 Day Streak";
     default:

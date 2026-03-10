@@ -21,7 +21,7 @@ export const DAILY_WINNER_POINTS = {
 };
 
 // Streak badge milestones
-export const STREAK_MILESTONES = [7, 14, 30, 60, 100];
+export const STREAK_MILESTONES = [7, 14, 30, 50, 100];
 
 // Utility functions
 export function generateInviteCode(): string {

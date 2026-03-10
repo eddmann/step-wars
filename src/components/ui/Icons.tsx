@@ -156,7 +156,7 @@ export function BadgeIcon({
     case "streak_7":
     case "streak_14":
     case "streak_30":
-    case "streak_60":
+    case "streak_50":
     case "streak_100":
       return <Flame className={`${sizeClass} ${className}`} />;
     default:

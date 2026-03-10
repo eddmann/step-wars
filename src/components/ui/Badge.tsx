@@ -155,7 +155,7 @@ export function BadgeIcon({ type, size = "md", className }: BadgeIconProps) {
     streak_7: "🔥",
     streak_14: "🔥",
     streak_30: "🌟",
-    streak_60: "💎",
+    streak_50: "💎",
     streak_100: "👑",
   };
 

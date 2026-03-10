@@ -157,6 +157,8 @@ export function BadgeIcon({ type, size = "md", className }: BadgeIconProps) {
     streak_30: "🌟",
     streak_50: "💎",
     streak_100: "👑",
+    marathon_day: "🏃",
+    perfect_week: "✅",
   };
 
   return (

@@ -159,6 +159,10 @@ export function BadgeIcon({
     case "streak_50":
     case "streak_100":
       return <Flame className={`${sizeClass} ${className}`} />;
+    case "marathon_day":
+      return <Footprints className={`${sizeClass} ${className}`} />;
+    case "perfect_week":
+      return <Calendar className={`${sizeClass} ${className}`} />;
     default:
       return <Award className={`${sizeClass} ${className}`} />;
   }

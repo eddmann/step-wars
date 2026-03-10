@@ -169,6 +169,10 @@ export function getBadgeStyle(badgeType: string): {
     case "streak_50":
     case "streak_100":
       return { bg: "bg-orange-100", text: "text-orange-800", icon: "flame" };
+    case "marathon_day":
+      return { bg: "bg-blue-100", text: "text-blue-800", icon: "footprints" };
+    case "perfect_week":
+      return { bg: "bg-green-100", text: "text-green-800", icon: "calendar" };
     default:
       return { bg: "bg-gray-100", text: "text-gray-800", icon: "award" };
   }
@@ -193,6 +197,10 @@ export function getBadgeName(badgeType: string): string {
       return "50 Day Streak";
     case "streak_100":
       return "100 Day Streak";
+    case "marathon_day":
+      return "Marathon Day";
+    case "perfect_week":
+      return "Perfect Week";
     default:
       return badgeType;
   }

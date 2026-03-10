@@ -113,7 +113,9 @@ export type BadgeType =
   | "streak_14"
   | "streak_30"
   | "streak_50"
-  | "streak_100";
+  | "streak_100"
+  | "marathon_day"
+  | "perfect_week";
 
 export interface Badge {
   id: number;

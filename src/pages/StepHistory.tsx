@@ -9,7 +9,6 @@ import {
   Footprints,
   Calendar,
   Edit2,
-  ChevronLeft,
 } from "../components/ui";
 import { useAppDispatch, useAppSelector } from "../store";
 import { fetchStepHistory } from "../store/slices/stepsSlice";
@@ -57,18 +56,7 @@ export default function StepHistory() {
 
   return (
     <PageContainer className="animate-fade-in">
-      <PageHeader
-        title="Step History"
-        action={
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/profile")}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-        }
-      />
+      <PageHeader title="Step History" backButton />
 
       {isLoading ? (
         <Card>

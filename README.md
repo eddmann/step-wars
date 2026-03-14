@@ -18,8 +18,22 @@ This started as a friendly rivalry: a friend and I have been challenging each ot
 
 ## Scoring
 
-Daily winner points: 1st=3, 2nd=2, 3rd=1.  
+Daily winner points: 1st=3, 2nd=2, 3rd=1.
 Cumulative: winner is highest total steps across the challenge window.
+
+## Badges
+
+| Badge | Name               | How to earn                            |
+| ----- | ------------------ | -------------------------------------- |
+| ☀️    | Daily Winner       | Win a day in a daily winner challenge  |
+| 🏆    | Challenge Champion | Win a completed challenge              |
+| 🔥    | 7 Day Streak       | Meet your daily goal 7 days in a row   |
+| 🔥    | 14 Day Streak      | Meet your daily goal 14 days in a row  |
+| 🌟    | 30 Day Streak      | Meet your daily goal 30 days in a row  |
+| 💎    | 50 Day Streak      | Meet your daily goal 50 days in a row  |
+| 👑    | 100 Day Streak     | Meet your daily goal 100 days in a row |
+| 🏃    | Marathon Day       | Log 20,000+ steps in a single day      |
+| ✅    | Perfect Week       | Meet your daily goal every day Mon–Sun |
 
 ## Quick Start
 

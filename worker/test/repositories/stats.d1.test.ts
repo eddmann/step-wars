@@ -23,7 +23,7 @@ describe("D1 StatsRepository", () => {
     await stepRepo.upsert(user.id, "2026-01-01", 1000, "manual");
 
     const badgeRepo = createD1BadgeRepository(env);
-    await badgeRepo.award(user.id, "challenge_winner");
+    await badgeRepo.award(user.id, "streak_7");
 
     const challengeRepo = createD1ChallengeRepository(env);
     const challenge = await challengeRepo.create({
@@ -37,7 +37,9 @@ describe("D1 StatsRepository", () => {
       timezone: "UTC",
       isRecurring: false,
       recurringInterval: null,
+      status: "completed",
     });
+    await challengeRepo.complete(challenge.id, user.id);
 
     const participantRepo = createD1ParticipantRepository(env);
     await participantRepo.join(challenge.id, user.id);

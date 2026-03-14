@@ -7,6 +7,7 @@ import {
   createUserBadge,
   createStepEntry,
   createParticipant,
+  createChallenge,
   resetAllFixtureCounters,
 } from "../fixtures";
 
@@ -24,7 +25,12 @@ describe("getProfile", () => {
     const user = createUser({ id: 1, timezone: "UTC" });
     const badge = createUserBadge({
       user_id: 1,
-      badge_type: "challenge_winner",
+      badge_type: "streak_7",
+    });
+    const challenge = createChallenge({
+      id: 1,
+      status: "completed",
+      winner_id: 1,
     });
     const step = createStepEntry({
       user_id: 1,
@@ -38,6 +44,7 @@ describe("getProfile", () => {
     seedTestStore(store, {
       users: [user],
       userBadges: [badge],
+      challenges: [challenge],
       stepEntries: [step],
       participants: [participant],
     });

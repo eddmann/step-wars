@@ -21,6 +21,7 @@ export function createMemoryChallengeRepository(
         invite_code: input.inviteCode,
         status: input.status ?? "pending",
         timezone: input.timezone,
+        winner_id: null,
         is_recurring: input.isRecurring ? 1 : 0,
         recurring_interval: input.recurringInterval,
         created_at: new Date().toISOString(),
@@ -74,6 +75,14 @@ export function createMemoryChallengeRepository(
       const challenge = store.challenges.find((c) => c.id === id);
       if (!challenge) return;
       challenge.status = status;
+      challenge.updated_at = new Date().toISOString();
+    },
+
+    async complete(id: number, winnerId: number | null): Promise<void> {
+      const challenge = store.challenges.find((c) => c.id === id);
+      if (!challenge) return;
+      challenge.status = "completed";
+      challenge.winner_id = winnerId;
       challenge.updated_at = new Date().toISOString();
     },
   };

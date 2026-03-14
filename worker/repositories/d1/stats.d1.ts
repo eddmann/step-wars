@@ -11,7 +11,7 @@ export function createD1StatsRepository(env: Env): StatsRepository {
         `SELECT
            COALESCE((SELECT SUM(step_count) FROM step_entries WHERE user_id = ?), 0) as total_steps,
            (SELECT COUNT(*) FROM challenge_participants WHERE user_id = ?) as challenges_joined,
-           (SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_type = 'challenge_winner') as challenges_won,
+           (SELECT COUNT(*) FROM challenges WHERE winner_id = ? AND status = 'completed') as challenges_won,
            (SELECT COUNT(*) FROM user_badges WHERE user_id = ?) as badges_earned`,
       )
         .bind(userId, userId, userId, userId)

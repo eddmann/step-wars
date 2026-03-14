@@ -31,6 +31,7 @@ export function createChallenge(overrides: Partial<Challenge> = {}): Challenge {
     invite_code: overrides.invite_code ?? `INVITE${id}`,
     status: overrides.status ?? "pending",
     timezone: overrides.timezone ?? "UTC",
+    winner_id: overrides.winner_id ?? null,
     is_recurring: overrides.is_recurring ?? 0,
     recurring_interval: overrides.recurring_interval ?? null,
     created_at: overrides.created_at ?? DEFAULT_NOW,

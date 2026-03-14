@@ -33,6 +33,7 @@ export interface Challenge {
   invite_code: string;
   status: "pending" | "active" | "completed";
   timezone: string;
+  winner_id: number | null;
   is_recurring: number;
   recurring_interval: "weekly" | "monthly" | null;
   created_at: string;

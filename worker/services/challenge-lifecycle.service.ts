@@ -163,8 +163,6 @@ export async function finalizeChallenge(
   deps: ChallengeLifecycleDeps,
   challenge: Challenge,
 ): Promise<void> {
-  await deps.challengeRepository.updateStatus(challenge.id, "completed");
-
   let winner: { user_id: number; name: string; score: number } | null = null;
 
   if (challenge.mode === "cumulative") {
@@ -185,6 +183,11 @@ export async function finalizeChallenge(
       winner = result;
     }
   }
+
+  await deps.challengeRepository.complete(
+    challenge.id,
+    winner?.user_id ?? null,
+  );
 
   if (winner) {
     const badge = await deps.badgeRepository.award(

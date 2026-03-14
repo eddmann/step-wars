@@ -14,8 +14,8 @@ export function createMemoryStatsRepository(store: TestStore): StatsRepository {
       const challengesJoined = store.participants.filter(
         (p) => p.user_id === userId,
       ).length;
-      const challengesWon = store.userBadges.filter(
-        (b) => b.user_id === userId && b.badge_type === "challenge_winner",
+      const challengesWon = store.challenges.filter(
+        (c) => c.winner_id === userId && c.status === "completed",
       ).length;
       const badgesEarned = store.userBadges.filter(
         (b) => b.user_id === userId,

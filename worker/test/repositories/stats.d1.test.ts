@@ -38,6 +38,7 @@ describe("D1 StatsRepository", () => {
       isRecurring: false,
       recurringInterval: null,
     });
+    await challengeRepo.setWinner(challenge.id, user.id);
 
     const participantRepo = createD1ParticipantRepository(env);
     await participantRepo.join(challenge.id, user.id);

@@ -133,8 +133,8 @@ export async function insertChallenge(
 ): Promise<Challenge> {
   const challenge = createChallenge(options);
   await env.DB.prepare(
-    `INSERT INTO challenges (id, title, description, creator_id, start_date, end_date, mode, invite_code, status, timezone, is_recurring, recurring_interval, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO challenges (id, title, description, creator_id, start_date, end_date, mode, invite_code, status, winner_id, timezone, is_recurring, recurring_interval, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       challenge.id,
@@ -146,6 +146,7 @@ export async function insertChallenge(
       challenge.mode,
       challenge.invite_code,
       challenge.status,
+      challenge.winner_id,
       challenge.timezone,
       challenge.is_recurring,
       challenge.recurring_interval,

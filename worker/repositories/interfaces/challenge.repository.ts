@@ -51,4 +51,9 @@ export interface ChallengeRepository {
    * Update a challenge status
    */
   updateStatus(id: number, status: Challenge["status"]): Promise<void>;
+
+  /**
+   * Set the winner of a completed challenge
+   */
+  setWinner(id: number, userId: number): Promise<void>;
 }

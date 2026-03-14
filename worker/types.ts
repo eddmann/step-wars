@@ -32,6 +32,7 @@ export interface Challenge {
   mode: "daily_winner" | "cumulative";
   invite_code: string;
   status: "pending" | "active" | "completed";
+  winner_id: number | null;
   timezone: string;
   is_recurring: number;
   recurring_interval: "weekly" | "monthly" | null;

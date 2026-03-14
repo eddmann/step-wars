@@ -5,6 +5,7 @@ import { createMemoryRepos } from "../memory";
 import {
   createUser,
   createUserBadge,
+  createChallenge,
   createStepEntry,
   createParticipant,
   resetAllFixtureCounters,
@@ -26,6 +27,12 @@ describe("getProfile", () => {
       user_id: 1,
       badge_type: "challenge_winner",
     });
+    const challenge = createChallenge({
+      id: 1,
+      creator_id: 1,
+      status: "completed",
+      winner_id: 1,
+    });
     const step = createStepEntry({
       user_id: 1,
       date: "2026-01-02",
@@ -37,6 +44,7 @@ describe("getProfile", () => {
     });
     seedTestStore(store, {
       users: [user],
+      challenges: [challenge],
       userBadges: [badge],
       stepEntries: [step],
       participants: [participant],

@@ -187,6 +187,8 @@ export async function finalizeChallenge(
   }
 
   if (winner) {
+    await deps.challengeRepository.setWinner(challenge.id, winner.user_id);
+
     const badge = await deps.badgeRepository.award(
       winner.user_id,
       "challenge_winner",

@@ -32,11 +32,6 @@ describe("HTTP /api/profile", () => {
       challenge_id: challenge.id,
       user_id: user.id,
     });
-    await insertBadge(env, {
-      user_id: user.id,
-      badge_type: "challenge_winner",
-    });
-
     const { res, body } = await requestJson<{
       data: {
         user: { id: number };

@@ -107,5 +107,13 @@ export function createD1ChallengeRepository(env: Env): ChallengeRepository {
         .bind(status, id)
         .run();
     },
+
+    async setWinner(id: number, userId: number): Promise<void> {
+      await env.DB.prepare(
+        `UPDATE challenges SET winner_id = ?, updated_at = datetime('now') WHERE id = ?`,
+      )
+        .bind(userId, id)
+        .run();
+    },
   };
 }

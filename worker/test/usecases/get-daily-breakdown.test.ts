@@ -274,9 +274,7 @@ describe("getDailyBreakdown", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const pendingDay = result.value.days.find(
-        (d) => d.date === "2026-01-02",
-      );
+      const pendingDay = result.value.days.find((d) => d.date === "2026-01-02");
       expect(pendingDay?.status).toBe("pending");
 
       for (const ranking of pendingDay?.rankings ?? []) {

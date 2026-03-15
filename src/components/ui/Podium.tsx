@@ -1,6 +1,9 @@
+import { useState, useRef, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import { Avatar } from "./Avatar";
 import { MedalBadge } from "./Badge";
+import { REACTION_TYPES, REACTION_EMOJI } from "../../../shared/constants";
+import type { ReactionType } from "../../../shared/constants";
 
 interface PodiumUser {
   name: string;
@@ -154,9 +157,12 @@ interface LeaderboardRowProps {
   valueLabel?: string;
   src?: string;
   isCurrentUser?: boolean;
-  lastFinalizedSteps?: number | null; // Steps from the last finalized day (null if none yet)
-  lastFinalizedLabel?: string; // e.g., "Yesterday" or "Mon, Jan 13"
-  challengeStatus?: "pending" | "active" | "completed"; // For showing "Pending" on active challenges with no finalized days
+  lastFinalizedSteps?: number | null;
+  lastFinalizedLabel?: string;
+  challengeStatus?: "pending" | "active" | "completed";
+  reactions?: Record<string, number>;
+  userReactions?: string[];
+  onReact?: (reactionType: string) => void;
   onClick?: () => void;
 }
 
@@ -170,67 +176,168 @@ export function LeaderboardRow({
   lastFinalizedSteps,
   lastFinalizedLabel,
   challengeStatus,
+  reactions,
+  userReactions,
+  onReact,
   onClick,
 }: LeaderboardRowProps) {
   const isTopThree = rank <= 3;
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  const showReactions = !isCurrentUser && onReact;
+  const isTouchDevice = useRef(false);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!showReactions) return;
+    if (e.pointerType === "touch") {
+      isTouchDevice.current = true;
+      longPressTimer.current = setTimeout(() => {
+        setPickerOpen((prev) => !prev);
+      }, 500);
+    }
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleRowClick = () => {
+    if (!showReactions || isTouchDevice.current) {
+      isTouchDevice.current = false;
+      return;
+    }
+    setPickerOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (rowRef.current && !rowRef.current.contains(e.target as Node)) {
+        setPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [pickerOpen]);
+
+  const activeReactions =
+    reactions && showReactions
+      ? Object.entries(reactions).filter(([, count]) => count > 0)
+      : [];
 
   return (
     <div
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 p-3",
-        onClick &&
-          "cursor-pointer press-effect hover:bg-[var(--color-surface-secondary)]",
-        isCurrentUser && "bg-[var(--color-accent)]/8",
-      )}
+      ref={rowRef}
+      className={cn("p-3", isCurrentUser && "bg-[var(--color-accent)]/8")}
     >
-      {/* Rank */}
-      <div className="w-8 flex justify-center">
-        {isTopThree ? (
-          <MedalBadge position={rank as 1 | 2 | 3} size="sm" />
-        ) : (
-          <span className="text-[13px] font-semibold text-[var(--color-text-tertiary)] tabular-nums">
-            {rank}
-          </span>
+      <div
+        onClick={onClick ?? handleRowClick}
+        onPointerDown={handlePointerDown}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        className={cn(
+          "flex items-center gap-3 select-none",
+          showReactions && "cursor-pointer",
+          onClick &&
+            "cursor-pointer press-effect hover:bg-[var(--color-surface-secondary)]",
         )}
-      </div>
-
-      {/* Avatar */}
-      <Avatar name={name} src={src} size="sm" />
-
-      {/* Name */}
-      <div className="flex-1 min-w-0">
-        <p
-          className={cn(
-            "text-[15px] font-medium truncate",
-            isCurrentUser
-              ? "text-[var(--color-accent)]"
-              : "text-[var(--color-text-primary)]",
+      >
+        {/* Rank */}
+        <div className="w-8 flex justify-center">
+          {isTopThree ? (
+            <MedalBadge position={rank as 1 | 2 | 3} size="sm" />
+          ) : (
+            <span className="text-[13px] font-semibold text-[var(--color-text-tertiary)] tabular-nums">
+              {rank}
+            </span>
           )}
-        >
-          {isCurrentUser ? "You" : name}
-        </p>
-        {/* Show last finalized day's steps, "Pending" for active challenges with no finalized days, or nothing for completed */}
-        {lastFinalizedSteps != null && lastFinalizedLabel ? (
-          <p className="text-[12px] text-[var(--color-text-tertiary)]">
-            {lastFinalizedLabel}: {lastFinalizedSteps.toLocaleString()}
+        </div>
+
+        {/* Avatar */}
+        <Avatar name={name} src={src} size="sm" />
+
+        {/* Name */}
+        <div className="flex-1 min-w-0">
+          <p
+            className={cn(
+              "text-[15px] font-medium truncate",
+              isCurrentUser
+                ? "text-[var(--color-accent)]"
+                : "text-[var(--color-text-primary)]",
+            )}
+          >
+            {isCurrentUser ? "You" : name}
           </p>
-        ) : challengeStatus === "active" ? (
-          <p className="text-[12px] text-[var(--color-text-tertiary)]">
-            Pending
+          {lastFinalizedSteps != null && lastFinalizedLabel ? (
+            <p className="text-[12px] text-[var(--color-text-tertiary)]">
+              {lastFinalizedLabel}: {lastFinalizedSteps.toLocaleString()}
+            </p>
+          ) : challengeStatus === "active" ? (
+            <p className="text-[12px] text-[var(--color-text-tertiary)]">
+              Pending
+            </p>
+          ) : null}
+        </div>
+
+        {/* Value */}
+        <div className="text-right">
+          <p className="text-[15px] font-semibold tabular-nums text-[var(--color-text-primary)]">
+            {value.toLocaleString()}
           </p>
-        ) : null}
+          <p className="text-[11px] text-[var(--color-text-tertiary)]">
+            {valueLabel}
+          </p>
+        </div>
       </div>
 
-      {/* Value */}
-      <div className="text-right">
-        <p className="text-[15px] font-semibold tabular-nums text-[var(--color-text-primary)]">
-          {value.toLocaleString()}
-        </p>
-        <p className="text-[11px] text-[var(--color-text-tertiary)]">
-          {valueLabel}
-        </p>
-      </div>
+      {/* Reaction pills */}
+      {activeReactions.length > 0 && (
+        <div className="flex items-center gap-1.5 mt-1.5 ml-11 flex-wrap">
+          {activeReactions.map(([type, count]) => {
+            const isOwn = userReactions?.includes(type);
+            return (
+              <button
+                key={type}
+                onClick={() => onReact!(type)}
+                className={cn(
+                  "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[12px] transition-colors",
+                  isOwn
+                    ? "bg-[var(--color-accent)]/15 border border-[var(--color-accent)]/30"
+                    : "bg-[var(--color-surface-secondary)] border border-transparent",
+                )}
+              >
+                <span>{REACTION_EMOJI[type as ReactionType]}</span>
+                <span className="tabular-nums text-[var(--color-text-secondary)]">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Reaction picker (revealed by long press) */}
+      {pickerOpen && showReactions && (
+        <div className="flex gap-1 mt-1.5 ml-11 p-1 bg-[var(--color-surface-secondary)] rounded-xl animate-slide-up">
+          {REACTION_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => {
+                onReact(type);
+                setPickerOpen(false);
+              }}
+              className="flex-1 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface)] active:scale-95 transition-all text-[20px]"
+            >
+              {REACTION_EMOJI[type]}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

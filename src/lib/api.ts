@@ -216,6 +216,23 @@ export async function resumeGoals(): Promise<
   return fetchApi("/goals/resume", { method: "POST" });
 }
 
+// Reactions
+export async function toggleReaction(
+  challengeId: number,
+  targetUserId: number,
+  date: string,
+  reactionType: string,
+): Promise<ApiResponse<{ added: boolean }>> {
+  return fetchApi(`/challenges/${challengeId}/reactions`, {
+    method: "POST",
+    body: JSON.stringify({
+      target_user_id: targetUserId,
+      date,
+      reaction_type: reactionType,
+    }),
+  });
+}
+
 // Profile
 export async function getProfile(): Promise<
   ApiResponse<{

@@ -3,6 +3,7 @@ import type { AppBindings } from "../types";
 import { createD1ChallengeRepository } from "../repositories/d1/challenge.d1";
 import { createD1ParticipantRepository } from "../repositories/d1/participant.d1";
 import { createD1LeaderboardRepository } from "../repositories/d1/leaderboard.d1";
+import { createD1ReactionRepository } from "../repositories/d1/reaction.d1";
 import { getLeaderboard } from "../usecases/get-leaderboard.usecase";
 import { errorToHttpStatus, errorToMessage } from "../usecases/errors";
 
@@ -14,9 +15,15 @@ export async function handleLeaderboard(c: Context<AppBindings>) {
   const challengeRepository = createD1ChallengeRepository(c.env);
   const participantRepository = createD1ParticipantRepository(c.env);
   const leaderboardRepository = createD1LeaderboardRepository(c.env);
+  const reactionRepository = createD1ReactionRepository(c.env);
 
   const result = await getLeaderboard(
-    { challengeRepository, participantRepository, leaderboardRepository },
+    {
+      challengeRepository,
+      participantRepository,
+      leaderboardRepository,
+      reactionRepository,
+    },
     { userId: user.id, challengeId },
   );
 

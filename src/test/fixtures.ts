@@ -157,6 +157,8 @@ export function createLeaderboardEntry(
     total_points: overrides?.total_points ?? 3,
     is_current_user: overrides?.is_current_user ?? false,
     last_finalized_steps: overrides?.last_finalized_steps ?? null,
+    reactions: overrides?.reactions ?? {},
+    user_reactions: overrides?.user_reactions ?? [],
     ...overrides,
   };
 }
@@ -170,6 +172,8 @@ export function createDayRanking(overrides?: Partial<DayRanking>): DayRanking {
     steps: overrides?.steps ?? 12000,
     points: overrides?.points ?? 3,
     is_current_user: overrides?.is_current_user ?? false,
+    reactions: overrides?.reactions ?? {},
+    user_reactions: overrides?.user_reactions ?? [],
     ...overrides,
   };
 }

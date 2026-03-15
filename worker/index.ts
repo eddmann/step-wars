@@ -11,6 +11,7 @@ import goals from "./routes/goals";
 import profile from "./routes/profile";
 import { handleLeaderboard } from "./routes/leaderboard";
 import { handleDailyBreakdown } from "./routes/dailyBreakdown";
+import { handleToggleReaction } from "./routes/reactions";
 import { handleScheduled } from "./scheduled";
 
 type AppBindings = {
@@ -58,6 +59,7 @@ app.get(
   authMiddleware,
   handleDailyBreakdown,
 );
+app.post("/api/challenges/:id/reactions", authMiddleware, handleToggleReaction);
 
 // Protected API routes (require authentication)
 app.use("/api/*", authMiddleware);

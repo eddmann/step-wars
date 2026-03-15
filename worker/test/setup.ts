@@ -8,6 +8,7 @@ import type {
   UserGoals,
   UserBadge,
   PendingNotification,
+  Reaction,
 } from "../types";
 
 export interface TestStore {
@@ -20,6 +21,7 @@ export interface TestStore {
   userGoals: UserGoals[];
   userBadges: UserBadge[];
   notifications: PendingNotification[];
+  reactions: Reaction[];
 }
 
 export function createTestStore(): TestStore {
@@ -33,6 +35,7 @@ export function createTestStore(): TestStore {
     userGoals: [],
     userBadges: [],
     notifications: [],
+    reactions: [],
   };
 }
 
@@ -49,4 +52,5 @@ export function seedTestStore(
   if (data.userGoals) store.userGoals.push(...data.userGoals);
   if (data.userBadges) store.userBadges.push(...data.userBadges);
   if (data.notifications) store.notifications.push(...data.notifications);
+  if (data.reactions) store.reactions.push(...data.reactions);
 }

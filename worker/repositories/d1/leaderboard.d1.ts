@@ -74,7 +74,7 @@ export function createD1LeaderboardRepository(env: Env): LeaderboardRepository {
       date: string,
     ): Promise<DailyStepsRow[]> {
       const result = await env.DB.prepare(
-        `SELECT se.user_id, u.name, COALESCE(se.step_count, 0) as steps
+        `SELECT cp.user_id, u.name, COALESCE(se.step_count, 0) as steps
          FROM challenge_participants cp
          INNER JOIN users u ON cp.user_id = u.id
          LEFT JOIN step_entries se ON se.user_id = cp.user_id AND se.date = ?

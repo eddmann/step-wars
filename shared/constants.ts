@@ -26,6 +26,31 @@ export const STREAK_MILESTONES = [7, 14, 30, 50, 100];
 // Marathon Day badge threshold
 export const MARATHON_DAY_STEPS = 20000;
 
+// Reaction types
+export const REACTION_TYPES = [
+  "fire",
+  "clap",
+  "wow",
+  "strong",
+  "laugh",
+  "trophy",
+  "lazy",
+  "eyes",
+] as const;
+
+export type ReactionType = (typeof REACTION_TYPES)[number];
+
+export const REACTION_EMOJI: Record<ReactionType, string> = {
+  fire: "\u{1F525}",
+  clap: "\u{1F44F}",
+  wow: "\u{1F632}",
+  strong: "\u{1F4AA}",
+  laugh: "\u{1F602}",
+  trophy: "\u{1F3C6}",
+  lazy: "\u{1F4A4}",
+  eyes: "\u{1F440}",
+};
+
 // Utility functions
 export function generateInviteCode(): string {
   const bytes = new Uint8Array(INVITE_CODE_LENGTH);

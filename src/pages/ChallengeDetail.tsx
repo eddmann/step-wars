@@ -25,6 +25,7 @@ import { useAppDispatch, useAppSelector } from "../store";
 import {
   fetchChallenge,
   fetchLeaderboard,
+  toggleReaction,
 } from "../store/slices/challengesSlice";
 import { useToast } from "../components/ui/Toast";
 import { formatDate, copyToClipboard } from "../lib/utils";
@@ -252,6 +253,21 @@ export default function ChallengeDetail() {
                 lastFinalizedSteps={entry.last_finalized_steps}
                 lastFinalizedLabel={lastFinalizedLabel}
                 challengeStatus={currentChallenge.status}
+                reactions={entry.reactions}
+                userReactions={entry.user_reactions}
+                onReact={
+                  lastFinalizedDate
+                    ? (reactionType) =>
+                        dispatch(
+                          toggleReaction({
+                            challengeId,
+                            targetUserId: entry.user_id,
+                            date: lastFinalizedDate,
+                            reactionType,
+                          }),
+                        )
+                    : undefined
+                }
               />
             ))}
           </div>

@@ -10,6 +10,7 @@ import { createMemoryGoalsRepository } from "../repositories/memory/goals.memory
 import { createMemoryBadgeRepository } from "../repositories/memory/badge.memory";
 import { createMemoryStatsRepository } from "../repositories/memory/stats.memory";
 import { createMemoryNotificationRepository } from "../repositories/memory/notification.memory";
+import { createMemoryReactionRepository } from "../repositories/memory/reaction.memory";
 
 export function createMemoryRepos(store: TestStore) {
   return {
@@ -24,5 +25,6 @@ export function createMemoryRepos(store: TestStore) {
     badgeRepository: createMemoryBadgeRepository(store),
     statsRepository: createMemoryStatsRepository(store),
     notificationRepository: createMemoryNotificationRepository(store),
+    reactionRepository: createMemoryReactionRepository(store),
   };
 }

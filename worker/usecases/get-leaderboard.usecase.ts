@@ -5,6 +5,7 @@ import { notFound, forbidden } from "./errors";
 import type { ChallengeRepository } from "../repositories/interfaces/challenge.repository";
 import type { ParticipantRepository } from "../repositories/interfaces/participant.repository";
 import type { LeaderboardRepository } from "../repositories/interfaces/leaderboard.repository";
+import type { ReactionRepository } from "../repositories/interfaces/reaction.repository";
 import { getDateTimeInTimezone } from "../../shared/dateUtils";
 import {
   getEditCutoffDate,
@@ -17,6 +18,7 @@ export interface GetLeaderboardDeps {
   challengeRepository: ChallengeRepository;
   participantRepository: ParticipantRepository;
   leaderboardRepository: LeaderboardRepository;
+  reactionRepository?: ReactionRepository;
   clock?: Clock;
 }
 
@@ -33,6 +35,8 @@ export interface LeaderboardEntry {
   total_points: number;
   is_current_user: boolean;
   last_finalized_steps: number | null;
+  reactions: Record<string, number>;
+  user_reactions: string[];
 }
 
 export interface GetLeaderboardResult {
@@ -97,6 +101,21 @@ export async function getLeaderboard(
     }
   }
 
+  // Fetch reaction data for the last finalized date
+  let reactionCounts = new Map<number, Record<string, number>>();
+  let userReactions = new Map<number, string[]>();
+  if (lastFinalizedDate && deps.reactionRepository) {
+    reactionCounts = await deps.reactionRepository.getCountsForChallenge(
+      input.challengeId,
+      lastFinalizedDate,
+    );
+    userReactions = await deps.reactionRepository.getUserReactionsForChallenge(
+      input.userId,
+      input.challengeId,
+      lastFinalizedDate,
+    );
+  }
+
   const sortedLeaderboard = [...rawLeaderboard].sort((a, b) => {
     if (challenge.mode === "daily_winner") {
       return b.total_points - a.total_points;
@@ -120,6 +139,8 @@ export async function getLeaderboard(
         last_finalized_steps: lastFinalizedDate
           ? (lastFinalizedStepsMap.get(entry.user_id) ?? 0)
           : null,
+        reactions: reactionCounts.get(entry.user_id) ?? {},
+        user_reactions: userReactions.get(entry.user_id) ?? [],
       };
     },
   );

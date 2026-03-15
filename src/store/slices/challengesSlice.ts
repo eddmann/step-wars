@@ -71,6 +71,39 @@ export const joinChallenge = createAsyncThunk(
   },
 );
 
+export const toggleReaction = createAsyncThunk(
+  "challenges/toggleReaction",
+  async (
+    {
+      challengeId,
+      targetUserId,
+      date,
+      reactionType,
+    }: {
+      challengeId: number;
+      targetUserId: number;
+      date: string;
+      reactionType: string;
+    },
+    { rejectWithValue },
+  ) => {
+    const response = await api.toggleReaction(
+      challengeId,
+      targetUserId,
+      date,
+      reactionType,
+    );
+    if (response.error) {
+      return rejectWithValue(response.error);
+    }
+    return {
+      targetUserId,
+      reactionType,
+      added: response.data!.added,
+    };
+  },
+);
+
 export const fetchLeaderboard = createAsyncThunk(
   "challenges/fetchLeaderboard",
   async (challengeId: number, { rejectWithValue }) => {
@@ -163,6 +196,32 @@ const challengesSlice = createSlice({
     builder.addCase(fetchLeaderboard.fulfilled, (state, action) => {
       state.leaderboard = action.payload.leaderboard;
       state.lastFinalizedDate = action.payload.last_finalized_date || null;
+    });
+
+    // Toggle reaction
+    builder.addCase(toggleReaction.fulfilled, (state, action) => {
+      const { targetUserId, reactionType, added } = action.payload;
+      const entry = state.leaderboard.find((e) => e.user_id === targetUserId);
+      if (!entry) return;
+
+      if (added) {
+        entry.reactions[reactionType] =
+          (entry.reactions[reactionType] ?? 0) + 1;
+        if (!entry.user_reactions.includes(reactionType)) {
+          entry.user_reactions.push(reactionType);
+        }
+      } else {
+        entry.reactions[reactionType] = Math.max(
+          0,
+          (entry.reactions[reactionType] ?? 0) - 1,
+        );
+        if (entry.reactions[reactionType] === 0) {
+          delete entry.reactions[reactionType];
+        }
+        entry.user_reactions = entry.user_reactions.filter(
+          (r) => r !== reactionType,
+        );
+      }
     });
   },
 });

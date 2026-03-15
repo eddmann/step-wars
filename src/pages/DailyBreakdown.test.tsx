@@ -45,6 +45,8 @@ describe("DailyBreakdown", () => {
           steps: null,
           points: 0,
           is_current_user: true,
+          reactions: {},
+          user_reactions: [],
         },
       ],
     });
@@ -75,6 +77,8 @@ describe("DailyBreakdown", () => {
           steps: 12000,
           points: 3,
           is_current_user: true,
+          reactions: {},
+          user_reactions: [],
         },
       ],
     });

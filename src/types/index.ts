@@ -72,6 +72,8 @@ export interface LeaderboardEntry {
   total_points: number; // For daily_winner mode
   is_current_user: boolean;
   last_finalized_steps: number | null; // Steps from the last finalized day (null if no finalized day yet or challenge completed)
+  reactions: Record<string, number>;
+  user_reactions: string[];
 }
 
 // Daily Breakdown
@@ -82,6 +84,8 @@ export interface DayRanking {
   steps: number | null; // null for other users on pending days
   points: number;
   is_current_user: boolean;
+  reactions: Record<string, number>;
+  user_reactions: string[];
 }
 
 export interface DaySummary {
@@ -126,7 +130,11 @@ export interface Badge {
 }
 
 // Notifications
-export type NotificationType = "badge_earned" | "daily_win" | "challenge_won";
+export type NotificationType =
+  | "badge_earned"
+  | "daily_win"
+  | "challenge_won"
+  | "reaction_received";
 
 export interface PendingNotification {
   id: number;

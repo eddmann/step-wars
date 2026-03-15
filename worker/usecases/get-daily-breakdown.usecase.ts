@@ -6,6 +6,7 @@ import type { ChallengeRepository } from "../repositories/interfaces/challenge.r
 import type { ParticipantRepository } from "../repositories/interfaces/participant.repository";
 import type { LeaderboardRepository } from "../repositories/interfaces/leaderboard.repository";
 import type { DailyPointsRepository } from "../repositories/interfaces/daily-points.repository";
+import type { ReactionRepository } from "../repositories/interfaces/reaction.repository";
 import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 import { getDateTimeInTimezone } from "../../shared/dateUtils";
 import { getDateRange } from "../utils/date-range";
@@ -19,6 +20,8 @@ interface DayRanking {
   steps: number | null;
   points: number;
   is_current_user: boolean;
+  reactions: Record<string, number>;
+  user_reactions: string[];
 }
 
 interface DaySummary {
@@ -32,6 +35,7 @@ export interface GetDailyBreakdownDeps {
   participantRepository: ParticipantRepository;
   leaderboardRepository: LeaderboardRepository;
   dailyPointsRepository: DailyPointsRepository;
+  reactionRepository?: ReactionRepository;
   clock?: Clock;
 }
 
@@ -119,6 +123,21 @@ export async function getDailyBreakdown(
       }
     }
 
+    let reactionCounts = new Map<number, Record<string, number>>();
+    let userReactionsMap = new Map<number, string[]>();
+    if (status === "finalized" && deps.reactionRepository) {
+      reactionCounts = await deps.reactionRepository.getCountsForChallenge(
+        input.challengeId,
+        date,
+      );
+      userReactionsMap =
+        await deps.reactionRepository.getUserReactionsForChallenge(
+          input.userId,
+          input.challengeId,
+          date,
+        );
+    }
+
     const rankings: DayRanking[] = stepsResult.map((row, index) => {
       const isCurrentUser = row.user_id === input.userId;
       const showSteps = status === "finalized" || isCurrentUser;
@@ -129,6 +148,8 @@ export async function getDailyBreakdown(
         steps: showSteps ? row.steps || 0 : null,
         points: pointsMap.get(row.user_id) || 0,
         is_current_user: isCurrentUser,
+        reactions: reactionCounts.get(row.user_id) ?? {},
+        user_reactions: userReactionsMap.get(row.user_id) ?? [],
       };
     });
 

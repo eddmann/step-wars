@@ -10,6 +10,7 @@ import type {
   UserGoals,
   UserBadge,
   PendingNotification,
+  Reaction,
 } from "../../types";
 import { createTestD1Env, clearD1Tables } from "../d1-setup";
 import {
@@ -21,6 +22,7 @@ import {
   createUserGoals,
   createUserBadge,
   createNotification,
+  createReaction,
   resetAllFixtureCounters,
 } from "../fixtures";
 
@@ -251,6 +253,28 @@ export async function insertBadge(
     .bind(badge.id, badge.user_id, badge.badge_type, badge.earned_at)
     .run();
   return badge;
+}
+
+export async function insertReaction(
+  env: Env,
+  options?: Parameters<typeof createReaction>[0],
+): Promise<Reaction> {
+  const reaction = createReaction(options);
+  await env.DB.prepare(
+    `INSERT INTO reactions (id, reactor_user_id, target_user_id, challenge_id, date, reaction_type, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      reaction.id,
+      reaction.reactor_user_id,
+      reaction.target_user_id,
+      reaction.challenge_id,
+      reaction.date,
+      reaction.reaction_type,
+      reaction.created_at,
+    )
+    .run();
+  return reaction;
 }
 
 export async function insertNotification(

@@ -7,6 +7,7 @@ export * from "./daily-points.fixture";
 export * from "./goals.fixture";
 export * from "./badge.fixture";
 export * from "./notification.fixture";
+export * from "./reaction.fixture";
 
 import { resetUserIdCounter } from "./user.fixture";
 import { resetSessionIdCounter } from "./session.fixture";
@@ -17,6 +18,7 @@ import { resetDailyPointsIdCounter } from "./daily-points.fixture";
 import { resetGoalsIdCounter } from "./goals.fixture";
 import { resetBadgeIdCounter } from "./badge.fixture";
 import { resetNotificationIdCounter } from "./notification.fixture";
+import { resetReactionIdCounter } from "./reaction.fixture";
 
 export function resetAllFixtureCounters(): void {
   resetUserIdCounter();
@@ -28,4 +30,5 @@ export function resetAllFixtureCounters(): void {
   resetGoalsIdCounter();
   resetBadgeIdCounter();
   resetNotificationIdCounter();
+  resetReactionIdCounter();
 }

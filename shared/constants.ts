@@ -26,6 +26,24 @@ export const STREAK_MILESTONES = [7, 14, 30, 50, 100];
 // Marathon Day badge threshold
 export const MARATHON_DAY_STEPS = 20000;
 
+// Ultra Marathon badge threshold
+export const ULTRA_MARATHON_STEPS = 40000;
+
+// Total steps milestones
+export const TOTAL_STEPS_MILESTONES = [1_000_000, 3_000_000, 5_000_000] as const;
+
+// Social Butterfly: number of challenges to join
+export const SOCIAL_BUTTERFLY_CHALLENGES = 5;
+
+// Weekend Warrior: consecutive weekends needed
+export const WEEKEND_WARRIOR_WEEKS = 4;
+
+// Weekend Warrior: minimum steps per weekend day
+export const WEEKEND_WARRIOR_STEPS = 10000;
+
+// Consistent Climber: consecutive days of increasing steps
+export const CONSISTENT_CLIMBER_DAYS = 7;
+
 // Reaction types
 export const REACTION_TYPES = [
   "fire",

@@ -7,6 +7,7 @@ import { createD1StepEntryRepository } from "../repositories/d1/step-entry.d1";
 import { createD1UserRepository } from "../repositories/d1/user.d1";
 import { createD1GoalsRepository } from "../repositories/d1/goals.d1";
 import { createD1BadgeRepository } from "../repositories/d1/badge.d1";
+import { createD1StatsRepository } from "../repositories/d1/stats.d1";
 import { listSteps } from "../usecases/list-steps.usecase";
 import { upsertSteps } from "../usecases/upsert-steps.usecase";
 import { getStepEntry } from "../usecases/get-step-entry.usecase";
@@ -55,8 +56,16 @@ steps.post("/", zValidator("json", stepEntrySchema), async (c) => {
   const goalsRepository = createD1GoalsRepository(c.env);
   const badgeRepository = createD1BadgeRepository(c.env);
 
+  const statsRepository = createD1StatsRepository(c.env);
+
   const result = await upsertSteps(
-    { stepEntryRepository, userRepository, goalsRepository, badgeRepository },
+    {
+      stepEntryRepository,
+      userRepository,
+      goalsRepository,
+      badgeRepository,
+      statsRepository,
+    },
     {
       userId: user.id,
       userTimezone: user.timezone,

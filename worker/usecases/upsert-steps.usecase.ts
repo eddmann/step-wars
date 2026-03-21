@@ -7,6 +7,7 @@ import type { StepEntryRepository } from "../repositories/interfaces/step-entry.
 import type { UserRepository } from "../repositories/interfaces/user.repository";
 import type { GoalsRepository } from "../repositories/interfaces/goals.repository";
 import type { BadgeRepository } from "../repositories/interfaces/badge.repository";
+import type { StatsRepository } from "../repositories/interfaces/stats.repository";
 import { EDIT_DEADLINE_HOUR } from "../../shared/constants";
 import {
   getDateTimeInTimezone,
@@ -21,6 +22,7 @@ export interface UpsertStepsDeps {
   userRepository: UserRepository;
   goalsRepository: GoalsRepository;
   badgeRepository: BadgeRepository;
+  statsRepository?: StatsRepository;
   clock?: Clock;
 }
 
@@ -58,6 +60,7 @@ export async function upsertSteps(
       goalsRepository: deps.goalsRepository,
       stepEntryRepository: deps.stepEntryRepository,
       badgeRepository: deps.badgeRepository,
+      statsRepository: deps.statsRepository,
       clock: deps.clock,
     },
     input.userId,

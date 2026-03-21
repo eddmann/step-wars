@@ -5,6 +5,8 @@ import { createD1DailyPointsRepository } from "./repositories/d1/daily-points.d1
 import { createD1LeaderboardRepository } from "./repositories/d1/leaderboard.d1";
 import { createD1BadgeRepository } from "./repositories/d1/badge.d1";
 import { createD1NotificationRepository } from "./repositories/d1/notification.d1";
+import { createD1GoalsRepository } from "./repositories/d1/goals.d1";
+import { createD1StepEntryRepository } from "./repositories/d1/step-entry.d1";
 import { runCron } from "./usecases/run-cron.usecase";
 
 /**
@@ -32,6 +34,8 @@ export async function handleScheduled(
       leaderboardRepository: createD1LeaderboardRepository(env),
       badgeRepository: createD1BadgeRepository(env),
       notificationRepository: createD1NotificationRepository(env),
+      goalsRepository: createD1GoalsRepository(env),
+      stepEntryRepository: createD1StepEntryRepository(env),
     };
 
     await runCron(deps);

@@ -18,6 +18,8 @@ import type { DailyPointsRepository } from "../repositories/interfaces/daily-poi
 import type { LeaderboardRepository } from "../repositories/interfaces/leaderboard.repository";
 import type { BadgeRepository } from "../repositories/interfaces/badge.repository";
 import type { NotificationRepository } from "../repositories/interfaces/notification.repository";
+import type { GoalsRepository } from "../repositories/interfaces/goals.repository";
+import type { StepEntryRepository } from "../repositories/interfaces/step-entry.repository";
 import { createNotification } from "./notifications.service";
 
 interface DailyRanking {
@@ -33,6 +35,8 @@ export interface ChallengeLifecycleDeps {
   leaderboardRepository: LeaderboardRepository;
   badgeRepository: BadgeRepository;
   notificationRepository: NotificationRepository;
+  goalsRepository?: GoalsRepository;
+  stepEntryRepository?: StepEntryRepository;
   clock?: Clock;
 }
 
@@ -132,6 +136,24 @@ export async function calculateDailyPointsForChallengeDate(
             challengeId,
           );
         }
+
+        // Comeback Kid: win a daily round after finishing last the previous day
+        const lastPlace = rankings[rankings.length - 1];
+        if (rankings.length >= 2 && lastPlace) {
+          // Check if yesterday's last-place finisher is today's winner
+          const previousDate = getPreviousDateStr(date);
+          const prevSteps =
+            await deps.leaderboardRepository.getDailyStepsForChallenge(
+              challengeId,
+              previousDate,
+            );
+          if (prevSteps.length >= 2) {
+            const prevLastPlace = prevSteps[prevSteps.length - 1];
+            if (prevLastPlace.user_id === entry.user_id) {
+              await deps.badgeRepository.award(entry.user_id, "comeback_kid");
+            }
+          }
+        }
       }
     }
   }
@@ -208,6 +230,12 @@ export async function finalizeChallenge(
     }
   }
 
+  // Iron Walker: hit daily goal every day of a challenge
+  await checkIronWalker(deps, challenge);
+
+  // Rival: complete 3+ challenges with the same opponent
+  await checkRival(deps, challenge);
+
   if (challenge.is_recurring && challenge.recurring_interval) {
     await createNextRecurringChallenge(deps, challenge);
   }
@@ -247,6 +275,106 @@ export async function createNextRecurringChallenge(
       nextChallenge.id,
       participant.user_id,
     );
+  }
+}
+
+function getPreviousDateStr(dateStr: string): string {
+  const d = parseDate(dateStr);
+  d.setDate(d.getDate() - 1);
+  return formatDate(d);
+}
+
+/**
+ * Iron Walker: award badge to any participant who hit their daily goal
+ * every single day of a completed challenge.
+ */
+async function checkIronWalker(
+  deps: ChallengeLifecycleDeps,
+  challenge: Challenge,
+): Promise<void> {
+  if (!deps.goalsRepository || !deps.stepEntryRepository) return;
+
+  const participants = await deps.participantRepository.listParticipants(
+    challenge.id,
+  );
+
+  const start = parseDate(challenge.start_date);
+  const end = parseDate(challenge.end_date);
+  const totalDays =
+    Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  for (const participant of participants) {
+    const goals = await deps.goalsRepository.getOrCreate(participant.user_id);
+    const entries = await deps.stepEntryRepository.listRecentForUser(
+      participant.user_id,
+      totalDays + 10,
+    );
+    const stepsByDate = new Map<string, number>();
+    for (const entry of entries) {
+      stepsByDate.set(entry.date, entry.step_count);
+    }
+
+    let perfect = true;
+    const current = new Date(start);
+    while (current <= end) {
+      const dateStr = formatDate(current);
+      const steps = stepsByDate.get(dateStr) || 0;
+      if (steps < goals.daily_target) {
+        perfect = false;
+        break;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    if (perfect) {
+      await deps.badgeRepository.award(participant.user_id, "iron_walker");
+    }
+  }
+}
+
+/**
+ * Rival: award badge when a user has completed 3+ challenges
+ * with the same opponent.
+ */
+async function checkRival(
+  deps: ChallengeLifecycleDeps,
+  challenge: Challenge,
+): Promise<void> {
+  const participants = await deps.participantRepository.listParticipants(
+    challenge.id,
+  );
+  if (participants.length < 2) return;
+
+  for (const participant of participants) {
+    const userChallenges = await deps.challengeRepository.listForUser(
+      participant.user_id,
+    );
+    const completedChallenges = userChallenges.filter(
+      (c) => c.status === "completed",
+    );
+
+    // Count how many completed challenges each opponent shares
+    const opponentCounts = new Map<number, number>();
+    for (const c of completedChallenges) {
+      const cParticipants = await deps.participantRepository.listParticipants(
+        c.id,
+      );
+      for (const p of cParticipants) {
+        if (p.user_id !== participant.user_id) {
+          opponentCounts.set(
+            p.user_id,
+            (opponentCounts.get(p.user_id) || 0) + 1,
+          );
+        }
+      }
+    }
+
+    for (const count of opponentCounts.values()) {
+      if (count >= 3) {
+        await deps.badgeRepository.award(participant.user_id, "rival");
+        break;
+      }
+    }
   }
 }
 

@@ -159,6 +159,17 @@ export function BadgeIcon({ type, size = "md", className }: BadgeIconProps) {
     streak_100: "👑",
     marathon_day: "🏃",
     perfect_week: "✅",
+    early_bird: "🌅",
+    steps_1m: "💯",
+    steps_3m: "🗻",
+    steps_5m: "🌋",
+    comeback_kid: "🔄",
+    social_butterfly: "🦋",
+    iron_walker: "🦾",
+    ultra_marathon: "🏔️",
+    weekend_warrior: "⚔️",
+    rival: "🤝",
+    consistent_climber: "📈",
   };
 
   return (

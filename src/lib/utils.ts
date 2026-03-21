@@ -173,6 +173,34 @@ export function getBadgeStyle(badgeType: string): {
       return { bg: "bg-blue-100", text: "text-blue-800", icon: "footprints" };
     case "perfect_week":
       return { bg: "bg-green-100", text: "text-green-800", icon: "calendar" };
+    case "early_bird":
+      return { bg: "bg-sky-100", text: "text-sky-800", icon: "sunrise" };
+    case "steps_1m":
+    case "steps_3m":
+    case "steps_5m":
+      return {
+        bg: "bg-purple-100",
+        text: "text-purple-800",
+        icon: "milestone",
+      };
+    case "comeback_kid":
+      return { bg: "bg-teal-100", text: "text-teal-800", icon: "refresh" };
+    case "social_butterfly":
+      return { bg: "bg-pink-100", text: "text-pink-800", icon: "users" };
+    case "iron_walker":
+      return { bg: "bg-slate-100", text: "text-slate-800", icon: "shield" };
+    case "ultra_marathon":
+      return { bg: "bg-indigo-100", text: "text-indigo-800", icon: "mountain" };
+    case "weekend_warrior":
+      return { bg: "bg-red-100", text: "text-red-800", icon: "sword" };
+    case "rival":
+      return {
+        bg: "bg-emerald-100",
+        text: "text-emerald-800",
+        icon: "handshake",
+      };
+    case "consistent_climber":
+      return { bg: "bg-cyan-100", text: "text-cyan-800", icon: "trending-up" };
     default:
       return { bg: "bg-gray-100", text: "text-gray-800", icon: "award" };
   }
@@ -201,6 +229,28 @@ export function getBadgeName(badgeType: string): string {
       return "Marathon Day";
     case "perfect_week":
       return "Perfect Week";
+    case "early_bird":
+      return "Early Bird";
+    case "steps_1m":
+      return "1M Steps";
+    case "steps_3m":
+      return "3M Steps";
+    case "steps_5m":
+      return "5M Steps";
+    case "comeback_kid":
+      return "Comeback Kid";
+    case "social_butterfly":
+      return "Social Butterfly";
+    case "iron_walker":
+      return "Iron Walker";
+    case "ultra_marathon":
+      return "Ultra Marathon";
+    case "weekend_warrior":
+      return "Weekend Warrior";
+    case "rival":
+      return "Rival";
+    case "consistent_climber":
+      return "Consistent Climber";
     default:
       return badgeType;
   }

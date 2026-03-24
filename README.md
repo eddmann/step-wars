@@ -34,6 +34,13 @@ Cumulative: winner is highest total steps across the challenge window.
 | 👑    | 100 Day Streak     | Meet your daily goal 100 days in a row |
 | 🏃    | Marathon Day       | Log 20,000+ steps in a single day      |
 | ✅    | Perfect Week       | Meet your daily goal every day Mon–Sun |
+| 🏔️    | Ultra Day          | Log 40,000+ steps in a single day      |
+| 💥    | 50K Day            | Log 50,000+ steps in a single day      |
+| 🦶    | Ultra Marathon     | Accumulate 1,000,000 lifetime steps    |
+| 🗺️    | Cross Country      | Accumulate 5,000,000 lifetime steps    |
+| 🌍    | Globe Trotter      | Accumulate 10,000,000 lifetime steps   |
+| 💯    | Centurion          | Log steps on 100 different days        |
+| 📅    | Year Walker        | Log steps on 365 different days        |
 
 ## Quick Start
 

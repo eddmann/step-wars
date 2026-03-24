@@ -201,6 +201,20 @@ export function getBadgeName(badgeType: string): string {
       return "Marathon Day";
     case "perfect_week":
       return "Perfect Week";
+    case "ultra_day":
+      return "Ultra Day";
+    case "fifty_k_day":
+      return "50K Day";
+    case "steps_1m":
+      return "Ultra Marathon";
+    case "steps_5m":
+      return "Cross Country";
+    case "steps_10m":
+      return "Globe Trotter";
+    case "days_100":
+      return "Centurion";
+    case "days_365":
+      return "Year Walker";
     default:
       return badgeType;
   }

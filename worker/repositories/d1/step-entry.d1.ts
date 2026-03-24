@@ -78,5 +78,24 @@ export function createD1StepEntryRepository(env: Env): StepEntryRepository {
         .first<{ total: number }>();
       return result?.total || 0;
     },
+
+    async sumAllForUser(userId: number): Promise<number> {
+      const result = await env.DB.prepare(
+        `SELECT COALESCE(SUM(step_count), 0) as total
+         FROM step_entries WHERE user_id = ?`,
+      )
+        .bind(userId)
+        .first<{ total: number }>();
+      return result?.total || 0;
+    },
+
+    async countDaysForUser(userId: number): Promise<number> {
+      const result = await env.DB.prepare(
+        `SELECT COUNT(*) as total FROM step_entries WHERE user_id = ?`,
+      )
+        .bind(userId)
+        .first<{ total: number }>();
+      return result?.total || 0;
+    },
   };
 }

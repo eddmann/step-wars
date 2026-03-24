@@ -26,6 +26,16 @@ export const STREAK_MILESTONES = [7, 14, 30, 50, 100];
 // Marathon Day badge threshold
 export const MARATHON_DAY_STEPS = 20000;
 
+// Single-day step milestones
+export const ULTRA_DAY_STEPS = 40_000;
+export const FIFTY_K_DAY_STEPS = 50_000;
+
+// Lifetime step milestones
+export const LIFETIME_STEP_MILESTONES = [1_000_000, 5_000_000, 10_000_000];
+
+// Days logged milestones
+export const DAYS_LOGGED_MILESTONES = [100, 365];
+
 // Reaction types
 export const REACTION_TYPES = [
   "fire",

@@ -6,7 +6,14 @@ import {
   getDateInTimezone,
   getYesterdayInTimezone,
 } from "../../shared/dateUtils";
-import { STREAK_MILESTONES, MARATHON_DAY_STEPS } from "../../shared/constants";
+import {
+  STREAK_MILESTONES,
+  MARATHON_DAY_STEPS,
+  ULTRA_DAY_STEPS,
+  FIFTY_K_DAY_STEPS,
+  LIFETIME_STEP_MILESTONES,
+  DAYS_LOGGED_MILESTONES,
+} from "../../shared/constants";
 import type { Clock } from "../utils/clock";
 import { systemClock } from "../utils/clock";
 
@@ -107,6 +114,35 @@ export async function updateUserStreak(
   // Perfect Week: hit goal every day Mon-Sun
   if (todaySteps >= goals.daily_target) {
     await checkPerfectWeek(deps, userId, today, goals.daily_target);
+  }
+
+  // Ultra Day: 40k+ steps in a single day
+  if (todaySteps >= ULTRA_DAY_STEPS) {
+    await deps.badgeRepository.award(userId, "ultra_day");
+  }
+
+  // 50K Day: 50k+ steps in a single day
+  if (todaySteps >= FIFTY_K_DAY_STEPS) {
+    await deps.badgeRepository.award(userId, "fifty_k_day");
+  }
+
+  // Lifetime step milestones
+  const totalSteps = await deps.stepEntryRepository.sumAllForUser(userId);
+  for (const milestone of LIFETIME_STEP_MILESTONES) {
+    if (totalSteps >= milestone) {
+      await deps.badgeRepository.award(
+        userId,
+        `steps_${milestone / 1_000_000}m`,
+      );
+    }
+  }
+
+  // Days logged milestones
+  const daysLogged = await deps.stepEntryRepository.countDaysForUser(userId);
+  for (const milestone of DAYS_LOGGED_MILESTONES) {
+    if (daysLogged >= milestone) {
+      await deps.badgeRepository.award(userId, `days_${milestone}`);
+    }
   }
 }
 

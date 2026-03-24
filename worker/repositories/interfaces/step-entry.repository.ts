@@ -39,4 +39,14 @@ export interface StepEntryRepository {
     startDate: string,
     endDate: string,
   ): Promise<number>;
+
+  /**
+   * Sum all steps ever logged by a user
+   */
+  sumAllForUser(userId: number): Promise<number>;
+
+  /**
+   * Count total days with step entries for a user
+   */
+  countDaysForUser(userId: number): Promise<number>;
 }

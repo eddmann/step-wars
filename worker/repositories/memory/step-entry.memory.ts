@@ -81,5 +81,15 @@ export function createMemoryStepEntryRepository(
         )
         .reduce((sum, entry) => sum + entry.step_count, 0);
     },
+
+    async sumAllForUser(userId: number): Promise<number> {
+      return store.stepEntries
+        .filter((e) => e.user_id === userId)
+        .reduce((sum, entry) => sum + entry.step_count, 0);
+    },
+
+    async countDaysForUser(userId: number): Promise<number> {
+      return store.stepEntries.filter((e) => e.user_id === userId).length;
+    },
   };
 }
